@@ -1,0 +1,915 @@
+{% extends "base.html" %}
+
+{% block title %}智能匹配 - 物料主数据管理智能应用{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/upload">数据导入</a></li>
+<li class="breadcrumb-item"><a href="/extract_parameters">参数提取</a></li>
+<li class="breadcrumb-item"><a href="/categorize">类别选择</a></li>
+<li class="breadcrumb-item"><a href="/form_generation">表单生成</a></li>
+<li class="breadcrumb-item active">智能匹配</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-brain text-primary"></i> 智能匹配分析
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 匹配状态概览 -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-0">1,180</div>
+                                <div class="small">待匹配数据</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-0" id="matchedCount">0</div>
+                                <div class="small">成功匹配</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-0" id="similarCount">0</div>
+                                <div class="small">相似匹配</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-0" id="unmatchedCount">0</div>
+                                <div class="small">未匹配</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 匹配算法配置 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">匹配算法配置</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">算法选择</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="matchingAlgorithm" 
+                                               id="tfidfMatching" value="tfidf" checked>
+                                        <label class="form-check-label" for="tfidfMatching">
+                                            <strong>TF-IDF + 余弦相似度</strong>
+                                            <br><small class="text-muted">适用于文本相似度匹配</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="matchingAlgorithm" 
+                                               id="semanticMatching" value="semantic">
+                                        <label class="form-check-label" for="semanticMatching">
+                                            <strong>语义相似度匹配</strong>
+                                            <br><small class="text-muted">基于深度学习的语义理解</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="matchingAlgorithm" 
+                                               id="hybridMatching" value="hybrid">
+                                        <label class="form-check-label" for="hybridMatching">
+                                            <strong>混合匹配算法</strong>
+                                            <br><small class="text-muted">结合多种算法的优势</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">匹配参数</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="similarityThreshold" class="form-label">相似度阈值</label>
+                                        <input type="range" class="form-range" id="similarityThreshold" 
+                                               min="0.5" max="1.0" step="0.05" value="0.8">
+                                        <div class="d-flex justify-content-between">
+                                            <small>0.5</small>
+                                            <small id="similarityValue">0.8</small>
+                                            <small>1.0</small>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="maxCandidates" class="form-label">最大候选数</label>
+                                        <select class="form-select" id="maxCandidates">
+                                            <option value="3">3 个候选</option>
+                                            <option value="5" selected>5 个候选</option>
+                                            <option value="10">10 个候选</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableFuzzyMatch" checked>
+                                        <label class="form-check-label" for="enableFuzzyMatch">
+                                            启用模糊匹配
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 字段权重配置 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">字段权重配置</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nameWeight" class="form-label">物料名称权重</label>
+                                <input type="range" class="form-range" id="nameWeight" 
+                                       min="0.1" max="1.0" step="0.1" value="0.5">
+                                <div class="d-flex justify-content-between">
+                                    <small>0.1</small>
+                                    <small id="nameWeightValue">0.5</small>
+                                    <small>1.0</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="specWeight" class="form-label">规格型号权重</label>
+                                <input type="range" class="form-range" id="specWeight" 
+                                       min="0.1" max="1.0" step="0.1" value="0.3">
+                                <div class="d-flex justify-content-between">
+                                    <small>0.1</small>
+                                    <small id="specWeightValue">0.3</small>
+                                    <small>1.0</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="manufacturerWeight" class="form-label">生产厂家权重</label>
+                                <input type="range" class="form-range" id="manufacturerWeight" 
+                                       min="0.1" max="1.0" step="0.1" value="0.2">
+                                <div class="d-flex justify-content-between">
+                                    <small>0.1</small>
+                                    <small id="manufacturerWeightValue">0.2</small>
+                                    <small>1.0</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="categoryWeight" class="form-label">类别权重</label>
+                                <input type="range" class="form-range" id="categoryWeight" 
+                                       min="0.1" max="1.0" step="0.1" value="0.1">
+                                <div class="d-flex justify-content-between">
+                                    <small>0.1</small>
+                                    <small id="categoryWeightValue">0.1</small>
+                                    <small>1.0</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 权重总和：<span id="totalWeight">1.1</span>
+                        <span id="weightWarning" class="text-warning ms-2" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i> 建议权重总和为1.0
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 匹配结果预览 -->
+                <div id="matchingResults" class="mb-4 d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">匹配结果</h6>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="resultFilter" id="filterAll" value="all" checked>
+                            <label class="btn btn-outline-primary" for="filterAll">全部</label>
+                            
+                            <input type="radio" class="btn-check" name="resultFilter" id="filterMatched" value="matched">
+                            <label class="btn btn-outline-success" for="filterMatched">已匹配</label>
+                            
+                            <input type="radio" class="btn-check" name="resultFilter" id="filterSimilar" value="similar">
+                            <label class="btn btn-outline-warning" for="filterSimilar">相似</label>
+                            
+                            <input type="radio" class="btn-check" name="resultFilter" id="filterUnmatched" value="unmatched">
+                            <label class="btn btn-outline-danger" for="filterUnmatched">未匹配</label>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="matchingResultsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;">
+                                        <input type="checkbox" class="form-check-input" id="selectAllResults">
+                                    </th>
+                                    <th>输入物料</th>
+                                    <th>匹配结果</th>
+                                    <th>相似度</th>
+                                    <th>状态</th>
+                                    <th style="width: 120px;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 动态生成匹配结果 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">显示 1-20 条，共 <span id="totalResults">0</span> 条记录</small>
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">上一页</a>
+                                </li>
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">1</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">2</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">下一页</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary me-2" onclick="previewMatching()">
+                            <i class="fas fa-eye"></i> 预览匹配
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="startMatching()">
+                            <i class="fas fa-play"></i> 开始匹配
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右侧信息 -->
+    <div class="col-lg-4">
+        <!-- 匹配进度 -->
+        <div class="card shadow-sm mb-4" id="matchingProgress" style="display: none;">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line text-info"></i> 匹配进度
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>总体进度</span>
+                        <span id="matchingPercent">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" id="exactMatchBar" style="width: 0%"></div>
+                        <div class="progress-bar bg-warning" id="similarMatchBar" style="width: 0%"></div>
+                        <div class="progress-bar bg-secondary" id="processingBar" style="width: 0%"></div>
+                    </div>
+                    <div class="small mt-1">
+                        <span class="badge bg-success">精确匹配</span>
+                        <span class="badge bg-warning">相似匹配</span>
+                        <span class="badge bg-secondary">处理中</span>
+                    </div>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="h6 text-success mb-0" id="exactCount">0</div>
+                        <div class="small text-muted">精确</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h6 text-warning mb-0" id="similarCount2">0</div>
+                        <div class="small text-muted">相似</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h6 text-danger mb-0" id="unmatchedCount2">0</div>
+                        <div class="small text-muted">未匹配</div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <div class="small text-muted">
+                        <div><i class="fas fa-clock text-info"></i> 预计剩余时间：<span id="estimatedTime">--</span></div>
+                        <div><i class="fas fa-tachometer-alt text-primary"></i> 处理速度：<span id="processingSpeed">--</span> 条/秒</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 匹配统计 -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie text-success"></i> 匹配统计
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="matchingStats">
+                    <p class="text-muted text-center">开始匹配后显示统计信息</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 算法说明 -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle text-info"></i> 算法说明
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="algorithmHelpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="tfidfHelp">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#tfidfHelpContent">
+                                TF-IDF算法
+                            </button>
+                        </h2>
+                        <div id="tfidfHelpContent" class="accordion-collapse collapse show" 
+                             data-bs-parent="#algorithmHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-check text-success"></i> 基于词频统计</li>
+                                    <li><i class="fas fa-check text-success"></i> 计算余弦相似度</li>
+                                    <li><i class="fas fa-check text-success"></i> 处理速度快</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 适用于大规模数据</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="semanticHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#semanticHelpContent">
+                                语义匹配
+                            </button>
+                        </h2>
+                        <div id="semanticHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#algorithmHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-brain text-primary"></i> 深度学习模型</li>
+                                    <li><i class="fas fa-language text-success"></i> 理解语义含义</li>
+                                    <li><i class="fas fa-bullseye text-warning"></i> 匹配精度高</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 适用于专业术语</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="hybridHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#hybridHelpContent">
+                                混合算法
+                            </button>
+                        </h2>
+                        <div id="hybridHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#algorithmHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-layer-group text-info"></i> 多算法融合</li>
+                                    <li><i class="fas fa-balance-scale text-success"></i> 平衡速度与精度</li>
+                                    <li><i class="fas fa-adaptive text-warning"></i> 自适应调整</li>
+                                    <li><i class="fas fa-star text-primary"></i> 推荐使用</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 匹配详情模态框 -->
+<div class="modal fade" id="matchingDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">匹配详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>输入数据</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="mb-2"><strong>物料名称：</strong><span id="inputName"></span></div>
+                                <div class="mb-2"><strong>规格型号：</strong><span id="inputSpec"></span></div>
+                                <div class="mb-2"><strong>生产厂家：</strong><span id="inputManufacturer"></span></div>
+                                <div class="mb-0"><strong>类别：</strong><span id="inputCategory"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>候选匹配</h6>
+                        <div id="candidatesList">
+                            <!-- 动态生成候选项 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-success" onclick="confirmMatch()">确认匹配</button>
+                <button type="button" class="btn btn-warning" onclick="manualMatch()">手动匹配</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let matchingConfig = {};
+let matchingResults = [];
+let currentMatchingItem = null;
+
+$(document).ready(function() {
+    // 初始化权重值显示
+    updateWeightValues();
+    
+    // 权重滑块变化监听
+    $('#nameWeight, #specWeight, #manufacturerWeight, #categoryWeight').on('input', function() {
+        updateWeightValues();
+        calculateTotalWeight();
+    });
+    
+    // 相似度阈值变化监听
+    $('#similarityThreshold').on('input', function() {
+        $('#similarityValue').text($(this).val());
+    });
+    
+    // 结果筛选变化
+    $('input[name="resultFilter"]').change(function() {
+        filterResults($(this).val());
+    });
+    
+    // 全选功能
+    $('#selectAllResults').change(function() {
+        $('#matchingResultsTable tbody input[type="checkbox"]').prop('checked', $(this).is(':checked'));
+    });
+});
+
+function updateWeightValues() {
+    $('#nameWeightValue').text($('#nameWeight').val());
+    $('#specWeightValue').text($('#specWeight').val());
+    $('#manufacturerWeightValue').text($('#manufacturerWeight').val());
+    $('#categoryWeightValue').text($('#categoryWeight').val());
+}
+
+function calculateTotalWeight() {
+    const total = parseFloat($('#nameWeight').val()) + 
+                  parseFloat($('#specWeight').val()) + 
+                  parseFloat($('#manufacturerWeight').val()) + 
+                  parseFloat($('#categoryWeight').val());
+    
+    $('#totalWeight').text(total.toFixed(1));
+    
+    if (Math.abs(total - 1.0) > 0.1) {
+        $('#weightWarning').show();
+    } else {
+        $('#weightWarning').hide();
+    }
+}
+
+function previewMatching() {
+    collectMatchingConfig();
+    
+    showLoading('正在生成匹配预览...');
+    
+    setTimeout(function() {
+        hideLoading();
+        
+        const previewData = generateMatchingPreview();
+        displayMatchingResults(previewData);
+        
+        $('#matchingResults').removeClass('d-none');
+        
+        $('html, body').animate({
+            scrollTop: $('#matchingResults').offset().top - 100
+        }, 500);
+    }, 2000);
+}
+
+function collectMatchingConfig() {
+    matchingConfig = {
+        algorithm: $('input[name="matchingAlgorithm"]:checked').val(),
+        similarity_threshold: parseFloat($('#similarityThreshold').val()),
+        max_candidates: parseInt($('#maxCandidates').val()),
+        fuzzy_matching: $('#enableFuzzyMatch').is(':checked'),
+        weights: {
+            name: parseFloat($('#nameWeight').val()),
+            spec: parseFloat($('#specWeight').val()),
+            manufacturer: parseFloat($('#manufacturerWeight').val()),
+            category: parseFloat($('#categoryWeight').val())
+        }
+    };
+}
+
+function generateMatchingPreview() {
+    return [
+        {
+            id: 1,
+            input: {
+                name: '阿莫西林胶囊',
+                spec: '0.25g×24粒',
+                manufacturer: '华北制药',
+                category: '化学药品'
+            },
+            match: {
+                name: '阿莫西林胶囊',
+                spec: '0.25g*24粒',
+                manufacturer: '华北制药集团',
+                category: '化学药品'
+            },
+            similarity: 0.95,
+            status: 'matched'
+        },
+        {
+            id: 2,
+            input: {
+                name: '血压计',
+                spec: '电子式',
+                manufacturer: '欧姆龙',
+                category: '医疗器械'
+            },
+            match: {
+                name: '电子血压计',
+                spec: '家用型',
+                manufacturer: '欧姆龙（大连）有限公司',
+                category: '二类医疗器械'
+            },
+            similarity: 0.78,
+            status: 'similar'
+        },
+        {
+            id: 3,
+            input: {
+                name: '胰岛素注射液',
+                spec: '10ml',
+                manufacturer: '诺和诺德',
+                category: '生物制品'
+            },
+            match: null,
+            similarity: 0,
+            status: 'unmatched'
+        },
+        {
+            id: 4,
+            input: {
+                name: '医用棉签',
+                spec: '无菌型',
+                manufacturer: '振德医疗',
+                category: '医用耗材'
+            },
+            match: {
+                name: '无菌棉签',
+                spec: '一次性使用',
+                manufacturer: '振德医疗用品股份有限公司',
+                category: '一类医疗器械'
+            },
+            similarity: 0.88,
+            status: 'matched'
+        },
+        {
+            id: 5,
+            input: {
+                name: '心电图机',
+                spec: '12导联',
+                manufacturer: '理邦仪器',
+                category: '医疗器械'
+            },
+            match: {
+                name: '十二导联心电图机',
+                spec: 'ECG-1200G',
+                manufacturer: '深圳市理邦精密仪器股份有限公司',
+                category: '二类医疗器械'
+            },
+            similarity: 0.72,
+            status: 'similar'
+        }
+    ];
+}
+
+function displayMatchingResults(data) {
+    let tableHtml = '';
+    
+    data.forEach(function(item) {
+        const similarityBadge = item.similarity >= 0.9 ? 'bg-success' : 
+                               item.similarity >= 0.7 ? 'bg-warning' : 'bg-danger';
+        
+        let statusBadge, statusText, matchContent;
+        
+        switch (item.status) {
+            case 'matched':
+                statusBadge = 'bg-success';
+                statusText = '已匹配';
+                matchContent = `
+                    <div class="small">
+                        <div><strong>${item.match.name}</strong></div>
+                        <div class="text-muted">${item.match.spec} | ${item.match.manufacturer}</div>
+                    </div>
+                `;
+                break;
+            case 'similar':
+                statusBadge = 'bg-warning';
+                statusText = '相似匹配';
+                matchContent = `
+                    <div class="small">
+                        <div><strong>${item.match.name}</strong></div>
+                        <div class="text-muted">${item.match.spec} | ${item.match.manufacturer}</div>
+                    </div>
+                `;
+                break;
+            case 'unmatched':
+                statusBadge = 'bg-danger';
+                statusText = '未匹配';
+                matchContent = '<div class="text-muted small">无匹配结果</div>';
+                break;
+        }
+        
+        tableHtml += `
+            <tr data-status="${item.status}">
+                <td>
+                    <input type="checkbox" class="form-check-input" value="${item.id}">
+                </td>
+                <td>
+                    <div class="small">
+                        <div><strong>${item.input.name}</strong></div>
+                        <div class="text-muted">${item.input.spec} | ${item.input.manufacturer}</div>
+                    </div>
+                </td>
+                <td>${matchContent}</td>
+                <td>
+                    ${item.similarity > 0 ? `<span class="badge ${similarityBadge}">${(item.similarity * 100).toFixed(1)}%</span>` : '--'}
+                </td>
+                <td>
+                    <span class="badge ${statusBadge}">${statusText}</span>
+                </td>
+                <td>
+                    <button class="btn btn-outline-primary btn-sm me-1" onclick="viewMatchingDetail(${item.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${item.status === 'similar' || item.status === 'unmatched' ? 
+                        `<button class="btn btn-outline-warning btn-sm" onclick="manualMatch(${item.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>` : ''}
+                </td>
+            </tr>
+        `;
+    });
+    
+    $('#matchingResultsTable tbody').html(tableHtml);
+    $('#totalResults').text(data.length);
+    matchingResults = data;
+    
+    // 更新统计
+    updateMatchingStatistics(data);
+}
+
+function updateMatchingStatistics(data) {
+    const matched = data.filter(item => item.status === 'matched').length;
+    const similar = data.filter(item => item.status === 'similar').length;
+    const unmatched = data.filter(item => item.status === 'unmatched').length;
+    
+    $('#matchedCount').text(matched);
+    $('#similarCount').text(similar);
+    $('#unmatchedCount').text(unmatched);
+}
+
+function filterResults(filter) {
+    if (filter === 'all') {
+        $('#matchingResultsTable tbody tr').show();
+    } else {
+        $('#matchingResultsTable tbody tr').hide();
+        $(`#matchingResultsTable tbody tr[data-status="${filter}"]`).show();
+    }
+}
+
+function viewMatchingDetail(id) {
+    const item = matchingResults.find(item => item.id === id);
+    if (!item) return;
+    
+    currentMatchingItem = item;
+    
+    // 填充输入数据
+    $('#inputName').text(item.input.name);
+    $('#inputSpec').text(item.input.spec);
+    $('#inputManufacturer').text(item.input.manufacturer);
+    $('#inputCategory').text(item.input.category);
+    
+    // 生成候选列表
+    let candidatesHtml = '';
+    
+    if (item.match) {
+        candidatesHtml = `
+            <div class="card mb-2 border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div><strong>${item.match.name}</strong></div>
+                            <div class="text-muted small">${item.match.spec}</div>
+                            <div class="text-muted small">${item.match.manufacturer}</div>
+                        </div>
+                        <div>
+                            <span class="badge bg-success">${(item.similarity * 100).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        candidatesHtml = '<div class="text-muted">无匹配候选项</div>';
+    }
+    
+    $('#candidatesList').html(candidatesHtml);
+    $('#matchingDetailModal').modal('show');
+}
+
+function confirmMatch() {
+    if (currentMatchingItem) {
+        showSuccessMessage('匹配已确认');
+        $('#matchingDetailModal').modal('hide');
+    }
+}
+
+function manualMatch(id) {
+    showInfoMessage('跳转到手动匹配页面');
+    // 实际实现中应跳转到手动匹配界面
+}
+
+function startMatching() {
+    collectMatchingConfig();
+    
+    // 显示进度
+    $('#matchingProgress').show();
+    
+    // 开始匹配进程
+    simulateMatching();
+}
+
+function simulateMatching() {
+    const totalItems = 1180;
+    let processed = 0;
+    let exactMatches = 0;
+    let similarMatches = 0;
+    let unmatched = 0;
+    
+    const startTime = Date.now();
+    
+    const interval = setInterval(function() {
+        const batchSize = Math.floor(Math.random() * 25) + 15;
+        processed += batchSize;
+        
+        // 模拟匹配结果分布
+        const exactBatch = Math.floor(batchSize * 0.6);
+        const similarBatch = Math.floor(batchSize * 0.25);
+        const unmatchedBatch = batchSize - exactBatch - similarBatch;
+        
+        exactMatches += exactBatch;
+        similarMatches += similarBatch;
+        unmatched += unmatchedBatch;
+        
+        if (processed >= totalItems) {
+            processed = totalItems;
+            clearInterval(interval);
+            
+            setTimeout(function() {
+                // 保存匹配结果到会话
+                saveMatchingResults(exactMatches, similarMatches, unmatched);
+                showSuccessMessage('智能匹配完成！');
+                updateFinalMatchingStats();
+                setTimeout(function() {
+                    window.location.href = '/decision';
+                }, 2000);
+            }, 500);
+        }
+        
+        updateMatchingProgress(processed, totalItems, exactMatches, similarMatches, unmatched, startTime);
+        
+    }, 200);
+}
+
+function updateMatchingProgress(processed, total, exact, similar, unmatched, startTime) {
+    const percentage = Math.floor((processed / total) * 100);
+    const exactPercentage = Math.floor((exact / total) * 100);
+    const similarPercentage = Math.floor((similar / total) * 100);
+    const processingPercentage = Math.floor(((total - processed) / total) * 100);
+    
+    $('#matchingPercent').text(percentage + '%');
+    $('#exactMatchBar').css('width', exactPercentage + '%');
+    $('#similarMatchBar').css('width', similarPercentage + '%');
+    $('#processingBar').css('width', processingPercentage + '%');
+    
+    $('#exactCount').text(exact);
+    $('#similarCount2').text(similar);
+    $('#unmatchedCount2').text(unmatched);
+    
+    // 计算处理速度和预估时间
+    const elapsed = (Date.now() - startTime) / 1000;
+    const speed = Math.floor(processed / elapsed);
+    const remaining = total - processed;
+    const estimatedTime = remaining > 0 ? Math.ceil(remaining / speed) : 0;
+    
+    $('#processingSpeed').text(speed);
+    $('#estimatedTime').text(estimatedTime > 0 ? estimatedTime + '秒' : '完成');
+    
+    // 更新卡片统计
+    $('#matchedCount').text(exact);
+    $('#similarCount').text(similar);
+    $('#unmatchedCount').text(unmatched);
+}
+
+function updateFinalMatchingStats() {
+    const stats = [
+        {category: '精确匹配', count: 708, percentage: 60.0, color: 'success'},
+        {category: '相似匹配', count: 295, percentage: 25.0, color: 'warning'},
+        {category: '未匹配', count: 177, percentage: 15.0, color: 'danger'}
+    ];
+    
+    let statsHtml = '';
+    stats.forEach(function(stat) {
+        statsHtml += `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small">${stat.category}</span>
+                <div>
+                    <span class="badge bg-${stat.color}">${stat.count}</span>
+                    <span class="small text-muted">(${stat.percentage}%)</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    $('#matchingStats').html(statsHtml);
+}
+
+function saveMatchingResults(exactMatches, similarMatches, unmatched) {
+    // 生成模拟的匹配结果数据
+    const matchingResults = [];
+    const totalMatches = exactMatches + similarMatches + unmatched;
+    
+    for (let i = 0; i < Math.min(totalMatches, 50); i++) {
+        const matchType = i < exactMatches ? 'exact' : (i < exactMatches + similarMatches ? 'similar' : 'unmatched');
+        matchingResults.push({
+            id: i + 1,
+            input_name: `物料${i + 1}`,
+            match_result: matchType,
+            similarity: matchType === 'exact' ? 0.95 + Math.random() * 0.05 : 
+                       matchType === 'similar' ? 0.7 + Math.random() * 0.25 : 0,
+            matched_time: new Date().toISOString(),
+            confidence: matchType === 'exact' ? 'high' : matchType === 'similar' ? 'medium' : 'low'
+        });
+    }
+    
+    // 通过AJAX保存到会话
+    $.ajax({
+        url: '/save_matching_results',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            results: matchingResults,
+            total_exact: exactMatches,
+            total_similar: similarMatches,
+            total_unmatched: unmatched,
+            config: matchingConfig
+        }),
+        success: function(response) {
+            console.log('匹配结果已保存到会话');
+        },
+        error: function(xhr, status, error) {
+            console.error('保存匹配结果失败:', error);
+        }
+    });
+}
+</script>
+{% endblock %}

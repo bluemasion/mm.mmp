@@ -1,0 +1,843 @@
+{% extends "base.html" %}
+
+{% block title %}决策支持 - 物料主数据管理智能应用{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/upload">数据导入</a></li>
+<li class="breadcrumb-item"><a href="/extract_parameters">参数提取</a></li>
+<li class="breadcrumb-item"><a href="/categorize">类别选择</a></li>
+<li class="breadcrumb-item"><a href="/form_generation">表单生成</a></li>
+<li class="breadcrumb-item"><a href="/matching">智能匹配</a></li>
+<li class="breadcrumb-item active">决策支持</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line text-primary"></i> 决策支持分析
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 处理结果概览 -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-0">708</div>
+                                <div class="small">精确匹配</div>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-light" style="width: 60%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-0">295</div>
+                                <div class="small">相似匹配</div>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-light" style="width: 25%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-0">177</div>
+                                <div class="small">未匹配</div>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-light" style="width: 15%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <div class="h4 mb-0">85%</div>
+                                <div class="small">匹配成功率</div>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-light" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 决策建议 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">智能决策建议</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-check-circle"></i> 建议自动处理
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>精确匹配数据</span>
+                                        <span class="badge bg-success">708 条</span>
+                                    </div>
+                                    <div class="small text-muted mb-3">
+                                        这些数据匹配度高(≥90%)，建议直接自动处理并导入系统。
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small">预估处理时间:</span>
+                                        <span class="small fw-bold">15 分钟</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small">风险评估:</span>
+                                        <span class="badge bg-success">低风险</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-white">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-exclamation-triangle"></i> 建议人工审核
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>相似匹配数据</span>
+                                        <span class="badge bg-warning">295 条</span>
+                                    </div>
+                                    <div class="small text-muted mb-3">
+                                        这些数据需要人工确认匹配结果，以确保数据准确性。
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small">预估审核时间:</span>
+                                        <span class="small fw-bold">2 小时</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small">风险评估:</span>
+                                        <span class="badge bg-warning">中风险</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 处理策略选择 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">处理策略选择</h6>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="processingStrategy" 
+                                               id="conservativeStrategy" value="conservative" checked>
+                                        <label class="form-check-label" for="conservativeStrategy">
+                                            <strong>保守策略</strong>
+                                            <br><small class="text-muted">只处理高置信度匹配，其余人工审核</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="processingStrategy" 
+                                               id="balancedStrategy" value="balanced">
+                                        <label class="form-check-label" for="balancedStrategy">
+                                            <strong>平衡策略</strong>
+                                            <br><small class="text-muted">自动处理大部分匹配，重点审核异常</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="processingStrategy" 
+                                               id="aggressiveStrategy" value="aggressive">
+                                        <label class="form-check-label" for="aggressiveStrategy">
+                                            <strong>激进策略</strong>
+                                            <br><small class="text-muted">自动处理所有有匹配的数据</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3" id="strategyDetails">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-info-circle"></i> 保守策略详情</h6>
+                                    <ul class="mb-0">
+                                        <li>自动处理：708 条精确匹配数据</li>
+                                        <li>人工审核：295 条相似匹配数据</li>
+                                        <li>手动处理：177 条未匹配数据</li>
+                                        <li>预计完成时间：3-4 小时</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 质量控制设置 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">质量控制设置</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">自动处理控制</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="autoProcessThreshold" class="form-label">
+                                            自动处理阈值 <span id="autoThresholdValue">0.90</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="autoProcessThreshold" 
+                                               min="0.8" max="1.0" step="0.05" value="0.90">
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableDuplicateCheck" checked>
+                                        <label class="form-check-label" for="enableDuplicateCheck">
+                                            启用重复数据检查
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableValidationCheck" checked>
+                                        <label class="form-check-label" for="enableValidationCheck">
+                                            启用数据验证检查
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">异常处理设置</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="errorHandling" class="form-label">错误处理方式</label>
+                                        <select class="form-select" id="errorHandling">
+                                            <option value="pause" selected>暂停处理</option>
+                                            <option value="skip">跳过错误</option>
+                                            <option value="log">记录日志</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableNotification" checked>
+                                        <label class="form-check-label" for="enableNotification">
+                                            启用异常通知
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableBackup" checked>
+                                        <label class="form-check-label" for="enableBackup">
+                                            启用数据备份
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 高级设置 -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">高级设置</h6>
+                        <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#advancedSettings">
+                            <i class="fas fa-cog"></i> 高级选项
+                        </button>
+                    </div>
+                    <div class="collapse" id="advancedSettings">
+                        <div class="card border-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="batchSize" class="form-label">批处理大小</label>
+                                            <select class="form-select" id="batchSize">
+                                                <option value="50">50 条/批</option>
+                                                <option value="100" selected>100 条/批</option>
+                                                <option value="200">200 条/批</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="concurrency" class="form-label">并发处理数</label>
+                                            <select class="form-select" id="concurrency">
+                                                <option value="2">2 个并发</option>
+                                                <option value="4" selected>4 个并发</option>
+                                                <option value="8">8 个并发</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label for="outputFormat" class="form-label">输出格式</label>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="exportExcel" checked>
+                                                        <label class="form-check-label" for="exportExcel">Excel 文件</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="exportDatabase" checked>
+                                                        <label class="form-check-label" for="exportDatabase">数据库导入</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="exportReport">
+                                                        <label class="form-check-label" for="exportReport">处理报告</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 执行计划 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">执行计划</h6>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6>第一阶段：自动处理</h6>
+                                        <p class="text-muted small mb-1">处理 708 条精确匹配数据</p>
+                                        <p class="text-muted small">预计时间：15 分钟</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-warning"></div>
+                                    <div class="timeline-content">
+                                        <h6>第二阶段：人工审核</h6>
+                                        <p class="text-muted small mb-1">审核 295 条相似匹配数据</p>
+                                        <p class="text-muted small">预计时间：2 小时</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-danger"></div>
+                                    <div class="timeline-content">
+                                        <h6>第三阶段：手动处理</h6>
+                                        <p class="text-muted small mb-1">处理 177 条未匹配数据</p>
+                                        <p class="text-muted small">预计时间：1 小时</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-info"></div>
+                                    <div class="timeline-content">
+                                        <h6>第四阶段：结果输出</h6>
+                                        <p class="text-muted small mb-1">生成处理报告和导出数据</p>
+                                        <p class="text-muted small">预计时间：30 分钟</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-outline-info me-2" onclick="saveConfiguration()">
+                            <i class="fas fa-save"></i> 保存配置
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="startProcessing()">
+                            <i class="fas fa-play"></i> 开始执行
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右侧信息 -->
+    <div class="col-lg-4">
+        <!-- 执行进度 -->
+        <div class="card shadow-sm mb-4" id="executionProgress" style="display: none;">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tasks text-success"></i> 执行进度
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>总体进度</span>
+                        <span id="totalProgress">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" id="totalProgressBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="small">当前阶段：<span id="currentStage">准备中</span></h6>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" id="stageProgressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="small text-muted">
+                    <div><i class="fas fa-check-circle text-success"></i> 已完成：<span id="completedCount">0</span></div>
+                    <div><i class="fas fa-hourglass-half text-warning"></i> 处理中：<span id="processingCount">0</span></div>
+                    <div><i class="fas fa-clock text-info"></i> 待处理：<span id="pendingCount">1,180</span></div>
+                    <div><i class="fas fa-exclamation-triangle text-danger"></i> 错误：<span id="errorCountFinal">0</span></div>
+                </div>
+                
+                <div class="mt-3 pt-3 border-top">
+                    <div class="small text-muted">
+                        <div>开始时间：<span id="startTime">--</span></div>
+                        <div>预计完成：<span id="estimatedEnd">--</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 实时日志 -->
+        <div class="card shadow-sm" id="executionLog" style="display: none;">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list-alt text-info"></i> 执行日志
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="logContent" style="height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+                    <!-- 动态日志内容 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 策略对比 -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-balance-scale text-warning"></i> 策略对比
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>策略</th>
+                                <th>自动处理</th>
+                                <th>人工审核</th>
+                                <th>预计时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="table-info">
+                                <td><strong>保守</strong></td>
+                                <td>708</td>
+                                <td>472</td>
+                                <td>3-4小时</td>
+                            </tr>
+                            <tr>
+                                <td>平衡</td>
+                                <td>890</td>
+                                <td>290</td>
+                                <td>2-3小时</td>
+                            </tr>
+                            <tr>
+                                <td>激进</td>
+                                <td>1003</td>
+                                <td>177</td>
+                                <td>1-2小时</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 风险评估 -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shield-alt text-danger"></i> 风险评估
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="small">数据质量风险</span>
+                        <span class="badge bg-success">低</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 4px;">
+                        <div class="progress-bar bg-success" style="width: 20%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="small">处理错误风险</span>
+                        <span class="badge bg-warning">中</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 4px;">
+                        <div class="progress-bar bg-warning" style="width: 45%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="small">时间延期风险</span>
+                        <span class="badge bg-success">低</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 4px;">
+                        <div class="progress-bar bg-success" style="width: 15%"></div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info alert-sm">
+                    <small><i class="fas fa-info-circle"></i> 基于历史数据分析的风险评估</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 确认执行模态框 -->
+<div class="modal fade" id="confirmExecutionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认执行</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    即将开始处理 1,180 条物料数据，此操作不可撤销。
+                </div>
+                
+                <h6>执行摘要：</h6>
+                <ul>
+                    <li>策略：<span id="selectedStrategy">保守策略</span></li>
+                    <li>自动处理：<span id="autoProcessCount">708</span> 条</li>
+                    <li>人工审核：<span id="manualReviewCount">295</span> 条</li>
+                    <li>预计时间：<span id="estimatedTime">3-4 小时</span></li>
+                </ul>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="confirmBackup" checked>
+                    <label class="form-check-label" for="confirmBackup">
+                        执行前创建数据备份
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" onclick="executeProcessing()">确认执行</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let processingConfig = {};
+let executionStartTime = null;
+
+$(document).ready(function() {
+    // 策略选择变化
+    $('input[name="processingStrategy"]').change(function() {
+        updateStrategyDetails($(this).val());
+    });
+    
+    // 阈值变化监听
+    $('#autoProcessThreshold').on('input', function() {
+        $('#autoThresholdValue').text($(this).val());
+    });
+    
+    // 初始化策略详情
+    updateStrategyDetails('conservative');
+});
+
+function updateStrategyDetails(strategy) {
+    const strategies = {
+        'conservative': {
+            title: '保守策略详情',
+            auto: 708,
+            review: 295,
+            manual: 177,
+            time: '3-4 小时',
+            description: '只自动处理高置信度匹配，确保数据准确性'
+        },
+        'balanced': {
+            title: '平衡策略详情',
+            auto: 890,
+            review: 290,
+            manual: 0,
+            time: '2-3 小时',
+            description: '平衡效率与准确性，适度自动化处理'
+        },
+        'aggressive': {
+            title: '激进策略详情',
+            auto: 1003,
+            review: 177,
+            manual: 0,
+            time: '1-2 小时',
+            description: '最大化自动处理，提高处理效率'
+        }
+    };
+    
+    const strategyInfo = strategies[strategy];
+    
+    $('#strategyDetails').html(`
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle"></i> ${strategyInfo.title}</h6>
+            <ul class="mb-2">
+                <li>自动处理：${strategyInfo.auto} 条数据</li>
+                <li>人工审核：${strategyInfo.review} 条数据</li>
+                ${strategyInfo.manual > 0 ? `<li>手动处理：${strategyInfo.manual} 条数据</li>` : ''}
+                <li>预计完成时间：${strategyInfo.time}</li>
+            </ul>
+            <p class="mb-0 small text-muted">${strategyInfo.description}</p>
+        </div>
+    `);
+}
+
+function saveConfiguration() {
+    collectProcessingConfig();
+    showSuccessMessage('配置已保存');
+    
+    // 模拟保存到服务器
+    console.log('保存的配置:', processingConfig);
+}
+
+function collectProcessingConfig() {
+    processingConfig = {
+        strategy: $('input[name="processingStrategy"]:checked').val(),
+        auto_threshold: parseFloat($('#autoProcessThreshold').val()),
+        duplicate_check: $('#enableDuplicateCheck').is(':checked'),
+        validation_check: $('#enableValidationCheck').is(':checked'),
+        error_handling: $('#errorHandling').val(),
+        notification: $('#enableNotification').is(':checked'),
+        backup: $('#enableBackup').is(':checked'),
+        batch_size: parseInt($('#batchSize').val()),
+        concurrency: parseInt($('#concurrency').val()),
+        output: {
+            excel: $('#exportExcel').is(':checked'),
+            database: $('#exportDatabase').is(':checked'),
+            report: $('#exportReport').is(':checked')
+        }
+    };
+}
+
+function startProcessing() {
+    collectProcessingConfig();
+    
+    // 更新确认模态框信息
+    const strategy = processingConfig.strategy;
+    const strategyNames = {
+        'conservative': '保守策略',
+        'balanced': '平衡策略',
+        'aggressive': '激进策略'
+    };
+    
+    const strategyCounts = {
+        'conservative': {auto: 708, review: 295, time: '3-4 小时'},
+        'balanced': {auto: 890, review: 290, time: '2-3 小时'},
+        'aggressive': {auto: 1003, review: 177, time: '1-2 小时'}
+    };
+    
+    $('#selectedStrategy').text(strategyNames[strategy]);
+    $('#autoProcessCount').text(strategyCounts[strategy].auto);
+    $('#manualReviewCount').text(strategyCounts[strategy].review);
+    $('#estimatedTime').text(strategyCounts[strategy].time);
+    
+    $('#confirmExecutionModal').modal('show');
+}
+
+function executeProcessing() {
+    $('#confirmExecutionModal').modal('hide');
+    
+    // 显示进度和日志卡片
+    $('#executionProgress').show();
+    $('#executionLog').show();
+    
+    // 记录开始时间
+    executionStartTime = new Date();
+    $('#startTime').text(executionStartTime.toLocaleTimeString());
+    
+    // 开始处理流程
+    simulateProcessing();
+}
+
+function simulateProcessing() {
+    const stages = [
+        {name: '数据备份', duration: 30, items: 1180},
+        {name: '自动处理', duration: 180, items: 708},
+        {name: '人工审核', duration: 240, items: 295},
+        {name: '结果输出', duration: 60, items: 1180}
+    ];
+    
+    let currentStageIndex = 0;
+    let totalCompleted = 0;
+    let totalItems = 1180;
+    
+    function processStage() {
+        if (currentStageIndex >= stages.length) {
+            completeProcessing();
+            return;
+        }
+        
+        const stage = stages[currentStageIndex];
+        $('#currentStage').text(stage.name);
+        
+        let stageCompleted = 0;
+        const stageInterval = setInterval(() => {
+            const increment = Math.floor(Math.random() * 15) + 5;
+            stageCompleted += increment;
+            totalCompleted += increment;
+            
+            if (stageCompleted >= stage.items) {
+                stageCompleted = stage.items;
+                clearInterval(stageInterval);
+                
+                // 添加日志
+                addLog(`✓ ${stage.name}完成 - 处理了 ${stage.items} 项`);
+                
+                // 进入下一阶段
+                currentStageIndex++;
+                setTimeout(processStage, 1000);
+            }
+            
+            // 更新进度
+            const stageProgress = Math.min((stageCompleted / stage.items) * 100, 100);
+            const totalProgress = Math.min((totalCompleted / totalItems) * 100, 100);
+            
+            $('#stageProgressBar').css('width', stageProgress + '%');
+            $('#totalProgressBar').css('width', totalProgress + '%');
+            $('#totalProgress').text(Math.floor(totalProgress) + '%');
+            
+            $('#completedCount').text(Math.min(totalCompleted, totalItems));
+            $('#processingCount').text(Math.max(0, Math.min(increment, totalItems - totalCompleted)));
+            $('#pendingCount').text(Math.max(0, totalItems - totalCompleted));
+            
+            // 添加处理日志
+            if (Math.random() < 0.3) {
+                addLog(`处理中... ${stage.name}: ${stageCompleted}/${stage.items}`);
+            }
+        }, 200);
+    }
+    
+    addLog('开始执行物料数据处理...');
+    processStage();
+}
+
+function addLog(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}\n`;
+    
+    const logContent = $('#logContent');
+    logContent.append(logEntry);
+    logContent.scrollTop(logContent[0].scrollHeight);
+}
+
+function completeProcessing() {
+    // 最终更新
+    $('#totalProgressBar').css('width', '100%');
+    $('#totalProgress').text('100%');
+    $('#stageProgressBar').css('width', '100%');
+    $('#currentStage').text('已完成');
+    
+    $('#completedCount').text('1,180');
+    $('#processingCount').text('0');
+    $('#pendingCount').text('0');
+    
+    // 计算完成时间
+    const endTime = new Date();
+    $('#estimatedEnd').text(endTime.toLocaleTimeString());
+    
+    addLog('✓ 所有处理阶段已完成');
+    addLog(`总耗时: ${Math.floor((endTime - executionStartTime) / 1000)} 秒`);
+    addLog('正在生成处理报告...');
+    
+    setTimeout(() => {
+        addLog('✓ 处理报告已生成');
+        addLog('✓ 数据已成功导入系统');
+        
+        showSuccessMessage('物料数据处理完成！');
+        
+        // 显示完成选项
+        setTimeout(() => {
+            if (confirm('处理完成！是否查看处理报告？')) {
+                window.open('/report', '_blank');
+            }
+        }, 2000);
+    }, 3000);
+}
+
+// 添加CSS样式
+const style = document.createElement('style');
+style.textContent = `
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -38px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 3px #dee2e6;
+}
+
+.timeline-content h6 {
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.template-card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s;
+}
+
+.template-card.border-primary {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

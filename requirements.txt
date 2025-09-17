@@ -1,0 +1,110 @@
+# MMP系统依赖包清单
+
+# 核心框架
+Flask==2.3.3
+pandas>=1.5.0
+numpy>=1.21.0
+scikit-learn>=1.2.0
+
+# 文本处理 - 中文支持
+jieba>=0.42.1
+zhconv>=1.4.3                # 繁简转换
+opencc-python-reimplemented  # 另一个繁简转换选项
+
+# 文档处理
+openpyxl>=3.0.9             # Excel处理
+xlrd>=2.0.1                 # 老版本Excel支持
+PyPDF2>=3.0.0               # PDF处理
+pdfplumber==0.11.0          # 更强大的PDF解析
+python-docx>=0.8.11         # Word文档处理
+
+# OCR和图像处理
+paddleocr>=2.6.0            # 百度OCR引擎
+Pillow>=9.0.0               # 图像处理
+opencv-python>=4.6.0        # 计算机视觉
+
+# 机器学习增强
+transformers>=4.21.0        # BERT等预训练模型
+torch>=1.12.0               # PyTorch（如需要深度学习）
+tensorflow>=2.10.0          # TensorFlow（如需要深度学习）
+
+# 数据库支持
+sqlalchemy>=1.4.0           # 数据库ORM - 核心数据库抽象层
+psycopg2-binary>=2.9.0      # PostgreSQL驱动
+pymysql>=1.0.2              # MySQL驱动（纯Python）
+#mysqlclient>=2.1.1          # MySQL驱动（C扩展，性能更好）
+pymysql>=1.0.2
+pymongo>=4.0.0              # MongoDB驱动
+redis>=4.3.0                # Redis缓存
+
+
+
+# 数据库连接池和管理
+#sqlalchemy-pool>=1.4.0      # 连接池管理
+alembic>=1.8.0              # 数据库迁移工具
+
+# API和网络
+requests>=2.28.0            # HTTP请求
+aiohttp>=3.8.0              # 异步HTTP（可选）
+celery>=5.2.0               # 异步任务队列
+flower>=1.2.0               # Celery监控
+
+# 配置和环境
+python-dotenv>=0.19.0       # 环境变量管理
+pyyaml>=6.0                 # YAML配置文件支持
+configparser>=5.3.0         # INI配置文件
+
+# 测试和开发
+pytest>=7.0.0               # 测试框架
+pytest-cov>=4.0.0           # 测试覆盖率
+black>=22.0.0               # 代码格式化
+flake8>=5.0.0               # 代码检查
+mypy>=0.991                 # 类型检查
+
+# 性能监控
+prometheus-client>=0.14.0   # Prometheus指标
+psutil>=5.9.0               # 系统监控
+memory-profiler>=0.60.0     # 内存分析
+
+# 日志和监控
+elasticsearch>=8.0.0        # 日志搜索（可选）
+loguru>=0.6.0               # 更好的日志库（可选）
+
+# 数据可视化和分析
+matplotlib>=3.5.0           # 图表绘制
+seaborn>=0.11.0             # 统计图表
+plotly>=5.10.0              # 交互式图表
+
+# Web开发增强
+flask-cors>=4.0.0           # 跨域支持
+flask-limiter>=2.5.0        # 速率限制
+flask-caching>=2.0.0        # 缓存支持
+gunicorn>=20.1.0            # 生产环境WSGI服务器
+
+# 数据验证
+pydantic>=1.10.0            # 数据验证
+marshmallow>=3.17.0         # 序列化/反序列化
+
+# 工具库
+tqdm>=4.64.0                # 进度条
+click>=8.1.0                # 命令行工具
+schedule>=1.2.0             # 任务调度
+python-crontab>=2.6.0       # Cron任务管理
+
+# 安全相关
+cryptography>=37.0.0        # 加密库
+authlib>=1.1.0              # OAuth支持
+
+# 可选：深度学习NLP
+sentence-transformers>=2.2.0  # 句子嵌入
+spacy==3.7.5                  # NLP工具包
+
+# 开发和部署
+#docker>=5.0.0               # Docker支持
+#kubernetes>=24.0.0          # K8s客户端（如需要）
+
+# 注意：
+# 1. 某些包可能有系统依赖，如opencv需要额外的系统库
+# 2. paddleocr在某些系统上安装可能需要额外配置
+# 3. 深度学习包(torch/tensorflow)体积较大，根据需要选择
+# 4. 生产环境建议固定版本号，避免兼容性问题

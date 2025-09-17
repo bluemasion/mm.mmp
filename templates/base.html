@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}物料主数据管理智能应用{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 自定义样式 -->
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-boxes"></i> 物料主数据管理
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('upload_page') }}">
+                            <i class="fas fa-upload"></i> 数据导入
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('batch_management') }}">
+                            <i class="fas fa-tasks"></i> 批量管理
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="checkSystemStatus()">
+                            <i class="fas fa-info-circle"></i> 系统状态
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="container-fluid py-4">
+        <!-- 面包屑导航 -->
+        {% block breadcrumb %}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">首页</a></li>
+                {% block breadcrumb_items %}{% endblock %}
+            </ol>
+        </nav>
+        {% endblock %}
+
+        <!-- Flash消息 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- 页面内容 -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-light text-center text-muted py-3 mt-5">
+        <div class="container">
+            <p>&copy; 2024 物料主数据管理智能应用系统. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Loading 模态框 -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mb-0" id="loadingText">正在处理，请稍候...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统状态模态框 -->
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">系统状态</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="statusContent">
+                    <!-- 状态信息将通过JavaScript加载 -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // 显示/隐藏loading
+        function showLoading(text = '正在处理，请稍候...') {
+            $('#loadingText').text(text);
+            $('#loadingModal').modal('show');
+        }
+        
+        function hideLoading() {
+            $('#loadingModal').modal('hide');
+        }
+        
+        // 检查系统状态
+        function checkSystemStatus() {
+            $.get('/api/status')
+                .done(function(data) {
+                    let statusHtml = `
+                        <table class="table table-sm">
+                            <tr><td>系统状态</td><td><span class="badge bg-success">运行中</span></td></tr>
+                            <tr><td>工作流服务</td><td><span class="badge bg-${data.workflow_service_initialized ? 'success' : 'danger'}">${data.workflow_service_initialized ? '已初始化' : '未初始化'}</span></td></tr>
+                            <tr><td>高级预处理器</td><td><span class="badge bg-${data.advanced_preprocessor_available ? 'success' : 'warning'}">${data.advanced_preprocessor_available ? '可用' : '不可用'}</span></td></tr>
+                            <tr><td>增强配置</td><td><span class="badge bg-${data.enhanced_config_available ? 'success' : 'warning'}">${data.enhanced_config_available ? '可用' : '不可用'}</span></td></tr>
+                            <tr><td>检查时间</td><td>${new Date(data.timestamp).toLocaleString()}</td></tr>
+                        </table>
+                    `;
+                    $('#statusContent').html(statusHtml);
+                    $('#statusModal').modal('show');
+                })
+                .fail(function() {
+                    $('#statusContent').html('<div class="alert alert-danger">无法获取系统状态</div>');
+                    $('#statusModal').modal('show');
+                });
+        }
+        
+        // 通用AJAX错误处理
+        $(document).ajaxError(function(event, xhr, settings, thrownError) {
+            hideLoading();
+            if (xhr.status === 0) {
+                alert('网络连接错误，请检查网络连接');
+            } else {
+                let errorMsg = '操作失败';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    errorMsg = response.error || errorMsg;
+                } catch (e) {
+                    errorMsg = xhr.statusText || errorMsg;
+                }
+                alert(errorMsg);
+            }
+        });
+        
+        // 通用成功消息显示
+        function showSuccessMessage(message) {
+            const alertHtml = `
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            $('main .container-fluid').prepend(alertHtml);
+            
+            // 3秒后自动消失
+            setTimeout(function() {
+                $('.alert-success').fadeOut();
+            }, 3000);
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

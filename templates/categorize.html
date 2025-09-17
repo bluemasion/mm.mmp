@@ -1,0 +1,843 @@
+{% extends "base.html" %}
+
+{% block title %}类别选择 - 物料主数据管理智能应用{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/upload">数据导入</a></li>
+<li class="breadcrumb-item"><a href="/extract_parameters">参数提取</a></li>
+<li class="breadcrumb-item active">类别选择</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-sitemap text-primary"></i> 类别选择与分类
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 处理统计 -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="h4 mb-0">1,250</div>
+                                        <div class="small">总记录数</div>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-database fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="h4 mb-0">1,180</div>
+                                        <div class="small">已提取参数</div>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-check-circle fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="h4 mb-0">0</div>
+                                        <div class="small">已分类</div>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-tags fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="h4 mb-0">70</div>
+                                        <div class="small">需人工确认</div>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分类方式选择 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">分类方式</h6>
+                    <div class="btn-group" role="group" aria-label="分类方式">
+                        <input type="radio" class="btn-check" name="classifyMethod" id="autoClassify" value="auto" checked>
+                        <label class="btn btn-outline-primary" for="autoClassify">
+                            <i class="fas fa-magic"></i> 智能分类
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="classifyMethod" id="manualClassify" value="manual">
+                        <label class="btn btn-outline-secondary" for="manualClassify">
+                            <i class="fas fa-hand-paper"></i> 手工分类
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="classifyMethod" id="hybridClassify" value="hybrid">
+                        <label class="btn btn-outline-success" for="hybridClassify">
+                            <i class="fas fa-balance-scale"></i> 混合分类
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 智能分类配置 -->
+                <div id="autoClassifySection" class="classification-section">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">分类算法配置</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="classificationAlgorithm" class="form-label">算法类型</label>
+                                        <select class="form-select" id="classificationAlgorithm">
+                                            <option value="ml_classification" selected>机器学习分类</option>
+                                            <option value="rule_based">基于规则</option>
+                                            <option value="keyword_matching">关键词匹配</option>
+                                            <option value="semantic_similarity">语义相似度</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="classificationConfidence" class="form-label">置信度阈值</label>
+                                        <input type="range" class="form-range" id="classificationConfidence" 
+                                               min="0.6" max="1.0" step="0.05" value="0.8">
+                                        <div class="d-flex justify-content-between">
+                                            <small>0.6</small>
+                                            <small id="confidenceValueAuto">0.8</small>
+                                            <small>1.0</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableFuzzyMatching" checked>
+                                        <label class="form-check-label" for="enableFuzzyMatching">
+                                            启用模糊匹配
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">目标分类体系</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="classificationSystem" class="form-label">分类标准</label>
+                                        <select class="form-select" id="classificationSystem">
+                                            <option value="medical_device" selected>医疗器械分类</option>
+                                            <option value="drug_classification">药品分类</option>
+                                            <option value="consumables">医用耗材分类</option>
+                                            <option value="custom">自定义分类</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="classificationLevel" class="form-label">分类层级</label>
+                                        <select class="form-select" id="classificationLevel">
+                                            <option value="1">一级分类</option>
+                                            <option value="2" selected>二级分类</option>
+                                            <option value="3">三级分类</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="previewClassificationTree()">
+                                        <i class="fas fa-tree"></i> 预览分类树
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 手工分类配置 -->
+                <div id="manualClassifySection" class="classification-section d-none">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        手工分类模式下，您需要为每个物料手动选择类别。系统会提供分类建议供参考。
+                    </div>
+                    <div class="mb-3">
+                        <label for="batchSize" class="form-label">每页显示数量</label>
+                        <select class="form-select" id="batchSize" style="width: 200px;">
+                            <option value="20" selected>20 条</option>
+                            <option value="50">50 条</option>
+                            <option value="100">100 条</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 混合分类配置 -->
+                <div id="hybridClassifySection" class="classification-section d-none">
+                    <div class="alert alert-success">
+                        <i class="fas fa-lightbulb"></i> 
+                        混合分类结合了智能分类和人工审核的优势，系统自动分类后，低置信度的结果将提交人工确认。
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="autoThreshold" class="form-label">自动分类阈值</label>
+                                <input type="range" class="form-range" id="autoThreshold" 
+                                       min="0.7" max="0.95" step="0.05" value="0.85">
+                                <div class="d-flex justify-content-between">
+                                    <small>0.7</small>
+                                    <small id="autoThresholdValue">0.85</small>
+                                    <small>0.95</small>
+                                </div>
+                                <small class="text-muted">高于此阈值的分类结果将自动确认</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="manualThreshold" class="form-label">人工确认阈值</label>
+                                <input type="range" class="form-range" id="manualThreshold" 
+                                       min="0.5" max="0.8" step="0.05" value="0.65">
+                                <div class="d-flex justify-content-between">
+                                    <small>0.5</small>
+                                    <small id="manualThresholdValue">0.65</small>
+                                    <small>0.8</small>
+                                </div>
+                                <small class="text-muted">低于此阈值的结果需要人工确认</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分类预览 -->
+                <div id="classificationPreview" class="mb-4 d-none">
+                    <h6 class="fw-bold mb-3">分类预览</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="classificationTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;">
+                                        <input type="checkbox" class="form-check-input" id="selectAll">
+                                    </th>
+                                    <th>物料名称</th>
+                                    <th>规格型号</th>
+                                    <th>推荐分类</th>
+                                    <th>置信度</th>
+                                    <th style="width: 100px;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">显示 1-20 条，共 1,180 条记录</small>
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">上一页</a>
+                                </li>
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">1</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">2</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">3</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">下一页</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary me-2" onclick="previewClassification()">
+                            <i class="fas fa-eye"></i> 预览分类
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="startClassification()">
+                            <i class="fas fa-play"></i> 开始分类
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右侧信息 -->
+    <div class="col-lg-4">
+        <!-- 分类进度 -->
+        <div class="card shadow-sm mb-4" id="classificationProgress" style="display: none;">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie text-info"></i> 分类进度
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>总体进度</span>
+                        <span id="classifyProgressPercent">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" id="autoClassifiedBar" style="width: 0%"></div>
+                        <div class="progress-bar bg-warning" id="manualReviewBar" style="width: 0%"></div>
+                        <div class="progress-bar bg-danger" id="failedClassificationBar" style="width: 0%"></div>
+                    </div>
+                    <div class="small mt-1">
+                        <span class="badge bg-success">自动分类</span>
+                        <span class="badge bg-warning">待审核</span>
+                        <span class="badge bg-danger">分类失败</span>
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="h6 text-success mb-0" id="autoCount">0</div>
+                        <div class="small text-muted">自动分类</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h6 text-warning mb-0" id="reviewCount">0</div>
+                        <div class="small text-muted">待审核</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="h6 text-danger mb-0" id="failedCount">0</div>
+                        <div class="small text-muted">失败</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分类统计 -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar text-success"></i> 分类统计
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="categoryStats">
+                    <p class="text-muted text-center">开始分类后显示统计信息</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分类说明 -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle text-info"></i> 分类说明
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="classifyHelpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="autoClassifyHelp">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#autoClassifyHelpContent">
+                                智能分类
+                            </button>
+                        </h2>
+                        <div id="autoClassifyHelpContent" class="accordion-collapse collapse show" 
+                             data-bs-parent="#classifyHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-check text-success"></i> 基于机器学习算法</li>
+                                    <li><i class="fas fa-check text-success"></i> 支持多种分类标准</li>
+                                    <li><i class="fas fa-check text-success"></i> 自动处理大批量数据</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 建议置信度 ≥ 0.8</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="hybridClassifyHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#hybridClassifyHelpContent">
+                                混合分类
+                            </button>
+                        </h2>
+                        <div id="hybridClassifyHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#classifyHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-magic text-primary"></i> 高置信度自动分类</li>
+                                    <li><i class="fas fa-user text-warning"></i> 低置信度人工确认</li>
+                                    <li><i class="fas fa-balance-scale text-success"></i> 平衡效率与准确性</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 推荐用于重要数据</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="manualClassifyHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#manualClassifyHelpContent">
+                                手工分类
+                            </button>
+                        </h2>
+                        <div id="manualClassifyHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#classifyHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-hand-paper text-secondary"></i> 完全人工控制</li>
+                                    <li><i class="fas fa-lightbulb text-warning"></i> 提供分类建议</li>
+                                    <li><i class="fas fa-clock text-info"></i> 适合小批量精确处理</li>
+                                    <li><i class="fas fa-shield-alt text-success"></i> 保证分类准确性</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分类树预览模态框 -->
+<div class="modal fade" id="classificationTreeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">分类体系预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="classificationTree"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分类详情模态框 -->
+<div class="modal fade" id="classificationDetailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">分类详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>物料名称：</strong><span id="detailAssetName"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>规格型号：</strong><span id="detailSpecModel"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>当前分类：</strong>
+                    <select class="form-select" id="detailCategory">
+                        <!-- 动态选项 -->
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <strong>推荐分类：</strong>
+                    <div id="recommendedCategories"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveClassification()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let classificationConfig = {};
+let currentClassificationData = [];
+
+$(document).ready(function() {
+    // 分类方式切换
+    $('input[name="classifyMethod"]').change(function() {
+        $('.classification-section').addClass('d-none');
+        $('#' + $(this).val() + 'ClassifySection').removeClass('d-none');
+    });
+    
+    // 阈值变化监听
+    $('#classificationConfidence').on('input', function() {
+        $('#confidenceValueAuto').text($(this).val());
+    });
+    
+    $('#autoThreshold').on('input', function() {
+        $('#autoThresholdValue').text($(this).val());
+    });
+    
+    $('#manualThreshold').on('input', function() {
+        $('#manualThresholdValue').text($(this).val());
+    });
+    
+    // 全选功能
+    $('#selectAll').change(function() {
+        $('#classificationTable tbody input[type="checkbox"]').prop('checked', $(this).is(':checked'));
+    });
+});
+
+function previewClassificationTree() {
+    const system = $('#classificationSystem').val();
+    const level = $('#classificationLevel').val();
+    
+    showLoading('正在加载分类体系...');
+    
+    setTimeout(function() {
+        hideLoading();
+        
+        const treeData = generateClassificationTree(system, level);
+        displayClassificationTree(treeData);
+        
+        $('#classificationTreeModal').modal('show');
+    }, 1000);
+}
+
+function generateClassificationTree(system, level) {
+    const trees = {
+        'medical_device': {
+            '1': ['一类医疗器械', '二类医疗器械', '三类医疗器械'],
+            '2': [
+                '一类医疗器械 > 基础医疗器械',
+                '一类医疗器械 > 康复器械',
+                '二类医疗器械 > 诊断器械',
+                '二类医疗器械 > 治疗器械',
+                '三类医疗器械 > 植入器械',
+                '三类医疗器械 > 生命支持器械'
+            ]
+        },
+        'drug_classification': {
+            '1': ['化学药品', '中药材', '生物制品'],
+            '2': [
+                '化学药品 > 抗感染药',
+                '化学药品 > 心血管药',
+                '中药材 > 清热药',
+                '中药材 > 补益药',
+                '生物制品 > 疫苗',
+                '生物制品 > 血液制品'
+            ]
+        }
+    };
+    
+    return trees[system] ? trees[system][level] : ['分类1', '分类2', '分类3'];
+}
+
+function displayClassificationTree(categories) {
+    let treeHtml = '<ul class="list-group">';
+    categories.forEach(function(category) {
+        treeHtml += `<li class="list-group-item">${category}</li>`;
+    });
+    treeHtml += '</ul>';
+    
+    $('#classificationTree').html(treeHtml);
+}
+
+function previewClassification() {
+    collectClassificationConfig();
+    
+    showLoading('正在生成分类预览...');
+    
+    setTimeout(function() {
+        hideLoading();
+        
+        const previewData = generateClassificationPreview();
+        displayClassificationPreview(previewData);
+        
+        $('#classificationPreview').removeClass('d-none');
+        
+        $('html, body').animate({
+            scrollTop: $('#classificationPreview').offset().top - 100
+        }, 500);
+    }, 2000);
+}
+
+function collectClassificationConfig() {
+    const method = $('input[name="classifyMethod"]:checked').val();
+    
+    classificationConfig = {
+        method: method,
+        algorithm: $('#classificationAlgorithm').val(),
+        confidence_threshold: parseFloat($('#classificationConfidence').val()),
+        classification_system: $('#classificationSystem').val(),
+        classification_level: parseInt($('#classificationLevel').val()),
+        enable_fuzzy_matching: $('#enableFuzzyMatching').is(':checked')
+    };
+    
+    if (method === 'hybrid') {
+        classificationConfig.auto_threshold = parseFloat($('#autoThreshold').val());
+        classificationConfig.manual_threshold = parseFloat($('#manualThreshold').val());
+    }
+}
+
+function generateClassificationPreview() {
+    const sampleData = [
+        {
+            id: 1,
+            asset_name: '阿莫西林胶囊',
+            spec_model: '0.25g×24粒',
+            recommended_category: '化学药品 > 抗感染药',
+            confidence: 0.95,
+            status: 'auto'
+        },
+        {
+            id: 2,
+            asset_name: '血压计',
+            spec_model: '电子式',
+            recommended_category: '二类医疗器械 > 诊断器械',
+            confidence: 0.88,
+            status: 'auto'
+        },
+        {
+            id: 3,
+            asset_name: '胰岛素注射液',
+            spec_model: '10ml',
+            recommended_category: '生物制品 > 激素类',
+            confidence: 0.72,
+            status: 'review'
+        },
+        {
+            id: 4,
+            asset_name: '医用棉签',
+            spec_model: '无菌型',
+            recommended_category: '一类医疗器械 > 基础医疗器械',
+            confidence: 0.91,
+            status: 'auto'
+        },
+        {
+            id: 5,
+            asset_name: '心电图机',
+            spec_model: '12导联',
+            recommended_category: '二类医疗器械 > 诊断器械',
+            confidence: 0.65,
+            status: 'review'
+        }
+    ];
+    
+    return sampleData;
+}
+
+function displayClassificationPreview(data) {
+    let tableHtml = '';
+    
+    data.forEach(function(item) {
+        const confidenceBadge = item.confidence >= 0.85 ? 'bg-success' : 
+                               item.confidence >= 0.7 ? 'bg-warning' : 'bg-danger';
+        const statusBadge = item.status === 'auto' ? 'bg-success' : 'bg-warning';
+        const statusText = item.status === 'auto' ? '自动分类' : '待审核';
+        
+        tableHtml += `
+            <tr>
+                <td>
+                    <input type="checkbox" class="form-check-input" value="${item.id}">
+                </td>
+                <td>${item.asset_name}</td>
+                <td>${item.spec_model}</td>
+                <td>
+                    ${item.recommended_category}
+                    <br><span class="badge ${statusBadge}">${statusText}</span>
+                </td>
+                <td>
+                    <span class="badge ${confidenceBadge}">
+                        ${(item.confidence * 100).toFixed(1)}%
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-outline-primary btn-sm" onclick="editClassification(${item.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    $('#classificationTable tbody').html(tableHtml);
+    currentClassificationData = data;
+}
+
+function editClassification(id) {
+    const item = currentClassificationData.find(item => item.id === id);
+    if (!item) return;
+    
+    $('#detailAssetName').text(item.asset_name);
+    $('#detailSpecModel').text(item.spec_model);
+    
+    // 填充分类选项
+    const categories = generateClassificationTree(
+        $('#classificationSystem').val(),
+        $('#classificationLevel').val()
+    );
+    
+    let optionsHtml = '';
+    categories.forEach(function(category) {
+        const selected = category === item.recommended_category ? 'selected' : '';
+        optionsHtml += `<option value="${category}" ${selected}>${category}</option>`;
+    });
+    $('#detailCategory').html(optionsHtml);
+    
+    // 显示推荐分类
+    let recommendedHtml = `
+        <div class="d-flex justify-content-between align-items-center">
+            <span>${item.recommended_category}</span>
+            <span class="badge bg-primary">${(item.confidence * 100).toFixed(1)}%</span>
+        </div>
+    `;
+    $('#recommendedCategories').html(recommendedHtml);
+    
+    $('#classificationDetailModal').modal('show');
+}
+
+function saveClassification() {
+    showSuccessMessage('分类修改已保存');
+    $('#classificationDetailModal').modal('hide');
+}
+
+function startClassification() {
+    collectClassificationConfig();
+    
+    // 显示进度卡片
+    $('#classificationProgress').show();
+    
+    // 开始分类进程
+    simulateClassification();
+}
+
+function simulateClassification() {
+    const totalRecords = 1180;
+    let processed = 0;
+    let autoClassified = 0;
+    let needReview = 0;
+    let failed = 0;
+    
+    const interval = setInterval(function() {
+        const batchSize = Math.floor(Math.random() * 30) + 20;
+        processed += batchSize;
+        
+        // 模拟分类结果分布
+        const autoBatch = Math.floor(batchSize * 0.75);
+        const reviewBatch = Math.floor(batchSize * 0.2);
+        const failedBatch = batchSize - autoBatch - reviewBatch;
+        
+        autoClassified += autoBatch;
+        needReview += reviewBatch;
+        failed += failedBatch;
+        
+        if (processed >= totalRecords) {
+            processed = totalRecords;
+            clearInterval(interval);
+            
+            setTimeout(function() {
+                // 保存分类选择结果到会话
+                saveCategorySelections(autoClassified, needReview, failed);
+                showSuccessMessage('分类完成！');
+                updateCategoryStats();
+                setTimeout(function() {
+                    window.location.href = '/form_generation';
+                }, 2000);
+            }, 1000);
+        }
+        
+        updateClassificationProgress(processed, totalRecords, autoClassified, needReview, failed);
+        
+    }, 300);
+}
+
+function saveCategorySelections(autoClassified, needReview, failed) {
+    // 生成模拟的分类选择数据
+    const categorySelections = {
+        auto_classified: autoClassified,
+        need_review: needReview,
+        failed: failed,
+        method: $('#algorithmType').val() || '机器学习分类',
+        confidence_threshold: parseFloat($('#confidenceThreshold').val()) || 0.8,
+        classification_standard: $('#classificationStandard').val() || '医疗器械分类',
+        classification_level: $('#classificationLevel').val() || '二级分类'
+    };
+    
+    // 通过AJAX保存到会话
+    $.ajax({
+        url: '/save_category_selections',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            selections: categorySelections,
+            total_classified: autoClassified + needReview,
+            total_failed: failed
+        }),
+        success: function(response) {
+            console.log('分类选择已保存到会话');
+        },
+        error: function(xhr, status, error) {
+            console.error('保存分类选择失败:', error);
+        }
+    });
+}
+
+function updateClassificationProgress(processed, total, autoClassified, needReview, failed) {
+    const percentage = Math.floor((processed / total) * 100);
+    const autoPercentage = Math.floor((autoClassified / total) * 100);
+    const reviewPercentage = Math.floor((needReview / total) * 100);
+    const failedPercentage = Math.floor((failed / total) * 100);
+    
+    $('#classifyProgressPercent').text(percentage + '%');
+    $('#autoClassifiedBar').css('width', autoPercentage + '%');
+    $('#manualReviewBar').css('width', reviewPercentage + '%');
+    $('#failedClassificationBar').css('width', failedPercentage + '%');
+    
+    $('#autoCount').text(autoClassified);
+    $('#reviewCount').text(needReview);
+    $('#failedCount').text(failed);
+}
+
+function updateCategoryStats() {
+    const stats = [
+        {category: '化学药品', count: 450, percentage: 38.1},
+        {category: '二类医疗器械', count: 320, percentage: 27.1},
+        {category: '一类医疗器械', count: 240, percentage: 20.3},
+        {category: '生物制品', count: 120, percentage: 10.2},
+        {category: '其他', count: 50, percentage: 4.2}
+    ];
+    
+    let statsHtml = '';
+    stats.forEach(function(stat) {
+        statsHtml += `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small">${stat.category}</span>
+                <div>
+                    <span class="badge bg-primary">${stat.count}</span>
+                    <span class="small text-muted">(${stat.percentage}%)</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    $('#categoryStats').html(statsHtml);
+}
+</script>
+{% endblock %}

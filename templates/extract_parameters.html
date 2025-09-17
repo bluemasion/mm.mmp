@@ -1,0 +1,786 @@
+{% extends "base.html" %}
+
+{% block title %}参数提取 - 物料主数据管理智能应用{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/upload">数据导入</a></li>
+<li class="breadcrumb-item active">参数提取</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs text-primary"></i> 参数提取配置
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 数据信息摘要 -->
+                <div class="alert alert-info mb-4">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>数据来源：</strong><span id="dataSource">文件导入</span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>数据行数：</strong><span id="dataRows">1,250</span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>字段数量：</strong><span id="dataColumns">8</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 字段映射配置 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">字段映射配置</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 200px;">目标字段</th>
+                                    <th style="width: 150px;">重要程度</th>
+                                    <th>源字段映射</th>
+                                    <th style="width: 120px;">预处理</th>
+                                    <th style="width: 100px;">预览</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fieldMappingTable">
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-primary">product_name</span>
+                                        <br><small class="text-muted">产品名称</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">必需</span>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm" name="mapping_product_name">
+                                            <option value="">请选择源字段</option>
+                                            <option value="产品名称" selected>产品名称</option>
+                                            <!-- 动态生成选项 -->
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="preprocess_product_name" checked>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="previewField('product_name')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-success">spec_model</span>
+                                        <br><small class="text-muted">规格型号</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">推荐</span>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm" name="mapping_spec_model">
+                                            <option value="">请选择源字段</option>
+                                            <option value="规格型号" selected>规格型号</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="preprocess_spec_model" checked>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="previewField('spec_model')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-info">manufacturer_name</span>
+                                        <br><small class="text-muted">生产厂家</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">推荐</span>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm" name="mapping_manufacturer_name">
+                                            <option value="">请选择源字段</option>
+                                            <option value="生产厂家" selected>生产厂家</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="preprocess_manufacturer_name" checked>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="previewField('manufacturer_name')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">medical_insurance_code</span>
+                                        <br><small class="text-muted">医保编码</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">可选</span>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm" name="mapping_medical_insurance_code">
+                                            <option value="">请选择源字段</option>
+                                            <option value="医保编码">医保编码</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="preprocess_medical_insurance_code">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="previewField('medical_insurance_code')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 预处理配置 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">预处理配置</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">文本清洗</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="removeSpecialChars" checked>
+                                        <label class="form-check-label" for="removeSpecialChars">
+                                            移除特殊字符
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="standardizeSpaces" checked>
+                                        <label class="form-check-label" for="standardizeSpaces">
+                                            标准化空格
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="trimWhitespace" checked>
+                                        <label class="form-check-label" for="trimWhitespace">
+                                            去除首尾空格
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">格式统一</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="standardizeUnits" checked>
+                                        <label class="form-check-label" for="standardizeUnits">
+                                            单位标准化
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="extractNumbers" checked>
+                                        <label class="form-check-label" for="extractNumbers">
+                                            提取数值信息
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="normalizeCasing">
+                                        <label class="form-check-label" for="normalizeCasing">
+                                            大小写归一化
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 参数提取算法配置 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">参数提取算法</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="extractionMethod" class="form-label">提取方法</label>
+                                <select class="form-select" id="extractionMethod">
+                                    <option value="rule_based">基于规则</option>
+                                    <option value="ml_based" selected>机器学习</option>
+                                    <option value="hybrid">混合方法</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="confidenceThreshold" class="form-label">置信度阈值</label>
+                                <input type="range" class="form-range" id="confidenceThreshold" 
+                                       min="0.5" max="1.0" step="0.05" value="0.85">
+                                <div class="d-flex justify-content-between">
+                                    <small>0.5</small>
+                                    <small id="confidenceValue">0.85</small>
+                                    <small>1.0</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 高级配置 -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">高级配置</h6>
+                        <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#advancedConfig">
+                            <i class="fas fa-chevron-down"></i> 展开/折叠
+                        </button>
+                    </div>
+                    <div class="collapse" id="advancedConfig">
+                        <div class="card border-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="batchSize" class="form-label">批处理大小</label>
+                                            <input type="number" class="form-control" id="batchSize" 
+                                                   value="1000" min="100" max="10000">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="maxWorkers" class="form-label">并发工作数</label>
+                                            <input type="number" class="form-control" id="maxWorkers" 
+                                                   value="4" min="1" max="16">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label for="customRules" class="form-label">自定义提取规则</label>
+                                            <textarea class="form-control" id="customRules" rows="3" 
+                                                      placeholder="输入自定义正则表达式或提取规则，每行一个"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary me-2" onclick="previewExtraction()">
+                            <i class="fas fa-eye"></i> 预览提取
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="startExtraction()">
+                            <i class="fas fa-play"></i> 开始提取
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右侧预览和帮助 -->
+    <div class="col-lg-4">
+        <!-- 提取进度 -->
+        <div class="card shadow-sm mb-4" id="progressCard" style="display: none;">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tasks text-info"></i> 提取进度
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>总体进度</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="small text-muted">
+                    <div><i class="fas fa-check-circle text-success"></i> 已处理：<span id="processedCount">0</span></div>
+                    <div><i class="fas fa-clock text-warning"></i> 剩余：<span id="remainingCount">0</span></div>
+                    <div><i class="fas fa-exclamation-triangle text-danger"></i> 错误：<span id="errorCount">0</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 字段预览 -->
+        <div class="card shadow-sm" id="fieldPreview" style="display: none;">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-search text-primary"></i> 字段预览
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6 id="previewFieldName"></h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>原始值</th>
+                                <th>处理后</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 帮助信息 -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-question-circle text-info"></i> 参数提取说明
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="helpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="mappingHelp">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#mappingHelpContent">
+                                字段映射
+                            </button>
+                        </h2>
+                        <div id="mappingHelpContent" class="accordion-collapse collapse show" 
+                             data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-circle text-danger"></i> <strong>必需字段：</strong>必须映射，否则无法继续</li>
+                                    <li><i class="fas fa-circle text-warning"></i> <strong>重要字段：</strong>建议映射，影响匹配精度</li>
+                                    <li><i class="fas fa-circle text-info"></i> <strong>可选字段：</strong>可选映射，提供额外信息</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="preprocessHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#preprocessHelpContent">
+                                预处理选项
+                            </button>
+                        </h2>
+                        <div id="preprocessHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><strong>文本清洗：</strong>移除影响匹配的干扰字符</li>
+                                    <li><strong>格式统一：</strong>标准化不同表达方式</li>
+                                    <li><strong>数值提取：</strong>自动识别规格中的数值</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="algorithmHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#algorithmHelpContent">
+                                提取算法
+                            </button>
+                        </h2>
+                        <div id="algorithmHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><strong>基于规则：</strong>使用预定义规则，速度快</li>
+                                    <li><strong>机器学习：</strong>智能识别，准确度高</li>
+                                    <li><strong>混合方法：</strong>结合两种方法的优势</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 预览模态框 -->
+<div class="modal fade" id="extractionPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">参数提取预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped" id="extractionPreviewTable">
+                        <thead class="table-dark">
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="startExtraction()">开始提取</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let sourceColumns = [];
+let extractionConfig = {};
+
+$(document).ready(function() {
+    // 初始化页面
+    initializePage();
+    
+    // 置信度阈值变化
+    $('#confidenceThreshold').on('input', function() {
+        $('#confidenceValue').text($(this).val());
+    });
+    
+    // 字段映射变化监听
+    $('select[name^="mapping_"]').change(function() {
+        validateMappings();
+    });
+});
+
+function initializePage() {
+    // 模拟从会话中获取源字段列表
+    sourceColumns = ['产品名称', '规格型号', '生产厂家', '医保编码', '价格', '单位', '类别', '备注'];
+    
+    // 填充字段映射下拉框
+    populateFieldMappings();
+    
+    // 智能映射建议
+    suggestMappings();
+}
+
+function populateFieldMappings() {
+    const selectElements = $('select[name^="mapping_"]');
+    
+    selectElements.each(function() {
+        const select = $(this);
+        select.empty().append('<option value="">请选择源字段</option>');
+        
+        sourceColumns.forEach(function(column) {
+            select.append(`<option value="${column}">${column}</option>`);
+        });
+    });
+}
+
+function suggestMappings() {
+    // 智能映射建议
+    const suggestions = {
+        'mapping_product_name': '产品名称',
+        'mapping_spec_model': '规格型号', 
+        'mapping_manufacturer_name': '生产厂家',
+        'mapping_medical_insurance_code': '医保编码'
+    };
+    
+    Object.keys(suggestions).forEach(function(mappingName) {
+        const suggestedValue = suggestions[mappingName];
+        if (sourceColumns.includes(suggestedValue)) {
+            $(`select[name="${mappingName}"]`).val(suggestedValue);
+        }
+    });
+    
+    validateMappings();
+}
+
+function validateMappings() {
+    const requiredMappings = ['mapping_product_name'];
+    let allRequiredMapped = true;
+    
+    requiredMappings.forEach(function(mapping) {
+        const value = $(`select[name="${mapping}"]`).val();
+        const row = $(`select[name="${mapping}"]`).closest('tr');
+        
+        if (!value) {
+            row.addClass('table-danger');
+            allRequiredMapped = false;
+        } else {
+            row.removeClass('table-danger');
+        }
+    });
+    
+    return allRequiredMapped;
+}
+
+function previewField(fieldName) {
+    showLoading('正在生成字段预览...');
+    
+    // 模拟字段预览数据
+    const previewData = {
+        'product_name': [
+            {original: '阿莫西林胶囊(0.25g*24粒)', processed: '阿莫西林胶囊'},
+            {original: '头孢拉定胶囊 0.25g*12粒', processed: '头孢拉定胶囊'},
+            {original: '胰岛素注射液10ml装', processed: '胰岛素注射液'}
+        ],
+        'spec_model': [
+            {original: '0.25g*24粒', processed: '0.25g×24粒'},
+            {original: '0.25g*12粒', processed: '0.25g×12粒'},
+            {original: '10ml装', processed: '10ml'}
+        ]
+    };
+    
+    setTimeout(function() {
+        hideLoading();
+        
+        const data = previewData[fieldName] || [
+            {original: '示例原始值1', processed: '示例处理值1'},
+            {original: '示例原始值2', processed: '示例处理值2'}
+        ];
+        
+        $('#previewFieldName').text(getFieldDisplayName(fieldName));
+        
+        let tableHtml = '';
+        data.forEach(function(item) {
+            tableHtml += `
+                <tr>
+                    <td><small class="text-muted">${item.original}</small></td>
+                    <td><strong>${item.processed}</strong></td>
+                </tr>
+            `;
+        });
+        
+        $('#previewTableBody').html(tableHtml);
+        $('#fieldPreview').show();
+    }, 1000);
+}
+
+function getFieldDisplayName(fieldName) {
+    const fieldNames = {
+        'product_name': '产品名称',
+        'spec_model': '规格型号',
+        'manufacturer_name': '生产厂家',
+        'medical_insurance_code': '医保编码'
+    };
+    return fieldNames[fieldName] || fieldName;
+}
+
+function previewExtraction() {
+    if (!validateMappings()) {
+        alert('请先完成必需字段的映射');
+        return;
+    }
+    
+    showLoading('正在生成提取预览...');
+    
+    // 收集配置
+    collectExtractionConfig();
+    
+    setTimeout(function() {
+        hideLoading();
+        
+        // 生成预览数据
+        const previewData = generatePreviewData();
+        displayExtractionPreview(previewData);
+        
+        $('#extractionPreviewModal').modal('show');
+    }, 2000);
+}
+
+function collectExtractionConfig() {
+    extractionConfig = {
+        field_mappings: {},
+        preprocessing: {
+            remove_special_chars: $('#removeSpecialChars').is(':checked'),
+            standardize_spaces: $('#standardizeSpaces').is(':checked'),
+            trim_whitespace: $('#trimWhitespace').is(':checked'),
+            standardize_units: $('#standardizeUnits').is(':checked'),
+            extract_numbers: $('#extractNumbers').is(':checked'),
+            normalize_casing: $('#normalizeCasing').is(':checked')
+        },
+        algorithm: {
+            method: $('#extractionMethod').val(),
+            confidence_threshold: parseFloat($('#confidenceThreshold').val()),
+            batch_size: parseInt($('#batchSize').val()),
+            max_workers: parseInt($('#maxWorkers').val()),
+            custom_rules: $('#customRules').val().split('\n').filter(rule => rule.trim())
+        }
+    };
+    
+    // 收集字段映射
+    $('select[name^="mapping_"]').each(function() {
+        const fieldName = $(this).attr('name').replace('mapping_', '');
+        const sourceField = $(this).val();
+        if (sourceField) {
+            extractionConfig.field_mappings[fieldName] = sourceField;
+        }
+    });
+}
+
+function generatePreviewData() {
+    return [
+        {
+            original_product_name: '阿莫西林胶囊(0.25g*24粒)',
+            extracted_product_name: '阿莫西林胶囊',
+            original_spec_model: '0.25g*24粒',
+            extracted_spec_model: '0.25g×24粒',
+            confidence: 0.95
+        },
+        {
+            original_product_name: '头孢拉定胶囊 0.25g*12粒',
+            extracted_product_name: '头孢拉定胶囊',
+            original_spec_model: '0.25g*12粒',
+            extracted_spec_model: '0.25g×12粒', 
+            confidence: 0.92
+        },
+        {
+            original_product_name: '胰岛素注射液10ml装',
+            extracted_product_name: '胰岛素注射液',
+            original_spec_model: '10ml装',
+            extracted_spec_model: '10ml',
+            confidence: 0.88
+        }
+    ];
+}
+
+function displayExtractionPreview(data) {
+    let headerHtml = '<tr>';
+    headerHtml += '<th>原始物料名称</th>';
+    headerHtml += '<th>提取结果</th>';
+    headerHtml += '<th>原始规格</th>';
+    headerHtml += '<th>提取结果</th>';
+    headerHtml += '<th>置信度</th>';
+    headerHtml += '</tr>';
+    
+    let bodyHtml = '';
+    data.forEach(function(row) {
+        bodyHtml += `
+            <tr>
+                <td><small class="text-muted">${row.original_product_name}</small></td>
+                <td><strong>${row.extracted_product_name}</strong></td>
+                <td><small class="text-muted">${row.original_spec_model}</small></td>
+                <td><strong>${row.extracted_spec_model}</strong></td>
+                <td>
+                    <span class="badge ${row.confidence >= 0.9 ? 'bg-success' : row.confidence >= 0.8 ? 'bg-warning' : 'bg-danger'}">
+                        ${(row.confidence * 100).toFixed(1)}%
+                    </span>
+                </td>
+            </tr>
+        `;
+    });
+    
+    $('#extractionPreviewTable thead').html(headerHtml);
+    $('#extractionPreviewTable tbody').html(bodyHtml);
+}
+
+function startExtraction() {
+    if (!validateMappings()) {
+        alert('请先完成必需字段的映射');
+        return;
+    }
+    
+    // 隐藏预览模态框
+    $('#extractionPreviewModal').modal('hide');
+    
+    // 收集配置
+    collectExtractionConfig();
+    
+    // 显示进度卡片
+    $('#progressCard').show();
+    
+    // 开始提取进程
+    simulateExtraction();
+}
+
+function simulateExtraction() {
+    const totalRecords = 1250;
+    let processed = 0;
+    let errors = 0;
+    
+    const interval = setInterval(function() {
+        processed += Math.floor(Math.random() * 50) + 10;
+        
+        if (Math.random() < 0.05) { // 5% 错误率
+            errors += Math.floor(Math.random() * 3) + 1;
+        }
+        
+        if (processed >= totalRecords) {
+            processed = totalRecords;
+            clearInterval(interval);
+            
+            setTimeout(function() {
+                // 保存提取结果到会话
+                saveExtractionResults(processed, errors);
+                showSuccessMessage('参数提取完成！');
+                setTimeout(function() {
+                    window.location.href = '/categorize';
+                }, 2000);
+            }, 1000);
+        }
+        
+        const percentage = Math.floor((processed / totalRecords) * 100);
+        const remaining = totalRecords - processed;
+        
+        $('#progressPercent').text(percentage + '%');
+        $('#progressBar').css('width', percentage + '%');
+        $('#processedCount').text(processed);
+        $('#remainingCount').text(remaining);
+        $('#errorCount').text(errors);
+        
+    }, 200);
+}
+
+function saveExtractionResults(processedCount, errorCount) {
+    // 生成模拟的提取结果数据
+    const extractionResults = [];
+    for (let i = 0; i < Math.min(processedCount, 100); i++) {
+        extractionResults.push({
+            id: i + 1,
+            original_product_name: `产品${i + 1}(规格${i + 1})`,
+            extracted_product_name: `产品${i + 1}`,
+            original_spec_model: `规格${i + 1}`,
+            extracted_spec_model: `规格${i + 1}`,
+            confidence: 0.85 + Math.random() * 0.15
+        });
+    }
+    
+    // 通过AJAX保存到会话
+    $.ajax({
+        url: '/save_extraction_results',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            results: extractionResults,
+            total_extracted: processedCount,
+            total_errors: errorCount,
+            config: extractionConfig
+        }),
+        success: function(response) {
+            console.log('提取结果已保存到会话');
+        },
+        error: function(xhr, status, error) {
+            console.error('保存提取结果失败:', error);
+        }
+    });
+}
+</script>
+{% endblock %}
