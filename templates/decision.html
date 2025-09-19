@@ -24,7 +24,7 @@
                 <!-- 处理结果概览 -->
                 <div class="row mb-4">
                     <div class="col-md-3">
-                        <div class="card bg-success text-white">
+                        <div class="card bg-success text-white clickable-card" style="cursor: pointer;" onclick="showMatchDetails('exact', 708)">
                             <div class="card-body text-center">
                                 <div class="h4 mb-0">708</div>
                                 <div class="small">精确匹配</div>
@@ -35,7 +35,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-warning text-white">
+                        <div class="card bg-warning text-white clickable-card" style="cursor: pointer;" onclick="showMatchDetails('similar', 295)">
                             <div class="card-body text-center">
                                 <div class="h4 mb-0">295</div>
                                 <div class="small">相似匹配</div>
@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-danger text-white">
+                        <div class="card bg-danger text-white clickable-card" style="cursor: pointer;" onclick="showMatchDetails('unmatched', 177)">
                             <div class="card-body text-center">
                                 <div class="h4 mb-0">177</div>
                                 <div class="small">未匹配</div>
@@ -552,6 +552,107 @@
         </div>
     </div>
 </div>
+
+<!-- 匹配详情模态框 -->
+<div class="modal fade" id="matchDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="matchDetailsModalTitle">匹配详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p class="text-muted" id="matchDetailsDescription">详细匹配结果信息</p>
+                </div>
+                <div id="matchDetailsContent">
+                    <!-- 动态生成的匹配详情内容 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-outline-info" onclick="showAllRecords()">
+                    <i class="fas fa-list"></i> 查看全部
+                </button>
+                <button type="button" class="btn btn-outline-primary" onclick="exportMatchDetails()">
+                    <i class="fas fa-download"></i> 导出详情
+                </button>
+                <button type="button" class="btn btn-primary" onclick="batchProcessSelected()">
+                    <i class="fas fa-check"></i> 批量处理
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全部记录查看模态框 -->
+<div class="modal fade" id="allRecordsModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="allRecordsModalTitle">全部记录</h5>
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <input type="text" class="form-control form-control-sm" id="recordSearch" 
+                               placeholder="搜索记录..." style="width: 200px;">
+                    </div>
+                    <div class="me-3">
+                        <select class="form-select form-select-sm" id="recordFilter" style="width: 120px;">
+                            <option value="all">全部状态</option>
+                            <option value="confirmed">已确认</option>
+                            <option value="pending">待审核</option>
+                            <option value="unmatched">无匹配</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive" style="height: calc(100vh - 200px);">
+                    <table class="table table-sm table-striped mb-0" id="allRecordsTable">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th width="30">
+                                    <input type="checkbox" id="selectAllRecords" class="form-check-input">
+                                </th>
+                                <th>序号</th>
+                                <th>输入物料</th>
+                                <th>匹配结果</th>
+                                <th>规格型号</th>
+                                <th>生产厂家</th>
+                                <th>匹配度</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allRecordsTableBody">
+                            <!-- 动态生成的全部记录内容 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <span class="text-muted">共 <span id="totalRecordsCount">0</span> 条记录，已选择 <span id="selectedRecordsCount">0</span> 条</span>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-outline-primary me-2" onclick="exportAllRecords()">
+                            <i class="fas fa-download"></i> 导出全部
+                        </button>
+                        <button type="button" class="btn btn-outline-success me-2" onclick="batchConfirmSelected()">
+                            <i class="fas fa-check"></i> 批量确认
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="batchProcessAllSelected()">
+                            <i class="fas fa-cog"></i> 批量处理
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -837,7 +938,644 @@ style.textContent = `
 .template-card.border-primary {
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
+
+.clickable-card:hover {
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.clickable-card {
+    transition: all 0.2s ease;
+}
 `;
 document.head.appendChild(style);
+
+function showMatchDetails(matchType, count) {
+    let title, description, details;
+    
+    switch(matchType) {
+        case 'exact':
+            title = '精确匹配详情';
+            description = `共有 ${count} 条数据实现了精确匹配，匹配度≥90%`;
+            details = generateExactMatchDetails(count);
+            break;
+        case 'similar':
+            title = '相似匹配详情';
+            description = `共有 ${count} 条数据为相似匹配，匹配度70%-90%`;
+            details = generateSimilarMatchDetails(count);
+            break;
+        case 'unmatched':
+            title = '未匹配详情';
+            description = `共有 ${count} 条数据未找到匹配，需要人工处理`;
+            details = generateUnmatchedDetails(count);
+            break;
+    }
+    
+    // 设置模态框内容
+    $('#matchDetailsModalTitle').text(title);
+    $('#matchDetailsDescription').text(description);
+    $('#matchDetailsContent').html(details);
+    
+    // 显示模态框
+    $('#matchDetailsModal').modal('show');
+}
+
+function generateExactMatchDetails(count) {
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead class="table-success">
+                    <tr>
+                        <th>输入物料</th>
+                        <th>匹配结果</th>
+                        <th>匹配度</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    for(let i = 0; i < Math.min(count, 10); i++) {
+        const similarity = (0.9 + Math.random() * 0.1).toFixed(3);
+        html += `
+            <tr>
+                <td>医用口罩 ${i + 1}</td>
+                <td>一次性医用口罩</td>
+                <td><span class="badge bg-success">${(similarity * 100).toFixed(1)}%</span></td>
+                <td><span class="badge bg-success">已确认</span></td>
+                <td><button class="btn btn-sm btn-outline-primary">查看</button></td>
+            </tr>
+        `;
+    }
+    
+    if(count > 10) {
+        html += `
+            <tr>
+                <td colspan="5" class="text-center text-muted py-3">
+                    还有 ${count - 10} 条记录... 
+                    <a href="#" class="text-primary ms-2" onclick="showAllRecords(); return false;">
+                        <i class="fas fa-list me-1"></i>查看全部
+                    </a>
+                </td>
+            </tr>
+        `;
+    }
+    
+    html += '</tbody></table></div>';
+    return html;
+}
+
+function generateSimilarMatchDetails(count) {
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead class="table-warning">
+                    <tr>
+                        <th>输入物料</th>
+                        <th>匹配结果</th>
+                        <th>匹配度</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    for(let i = 0; i < Math.min(count, 10); i++) {
+        const similarity = (0.7 + Math.random() * 0.2).toFixed(3);
+        html += `
+            <tr>
+                <td>医用防护服 ${i + 1}</td>
+                <td>隔离防护服</td>
+                <td><span class="badge bg-warning">${(similarity * 100).toFixed(1)}%</span></td>
+                <td><span class="badge bg-warning">待审核</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-success me-1" onclick="confirmMatch(this, ${i + 1})">确认</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="rejectMatch(this, ${i + 1})">拒绝</button>
+                </td>
+            </tr>
+        `;
+    }
+    
+    if(count > 10) {
+        html += `
+            <tr>
+                <td colspan="5" class="text-center text-muted py-3">
+                    还有 ${count - 10} 条记录... 
+                    <a href="#" class="text-primary ms-2" onclick="showAllRecords(); return false;">
+                        <i class="fas fa-list me-1"></i>查看全部
+                    </a>
+                </td>
+            </tr>
+        `;
+    }
+    
+    html += '</tbody></table></div>';
+    return html;
+}
+
+function generateUnmatchedDetails(count) {
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead class="table-danger">
+                    <tr>
+                        <th>输入物料</th>
+                        <th>规格型号</th>
+                        <th>生产厂家</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    for(let i = 0; i < Math.min(count, 10); i++) {
+        html += `
+            <tr>
+                <td>特殊医疗设备 ${i + 1}</td>
+                <td>型号未知</td>
+                <td>厂家未知</td>
+                <td><span class="badge bg-danger">无匹配</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="manualMatch(this, ${i + 1})">手动匹配</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="skipMatch(this, ${i + 1})">跳过</button>
+                </td>
+            </tr>
+        `;
+    }
+    
+    if(count > 10) {
+        html += `
+            <tr>
+                <td colspan="5" class="text-center text-muted py-3">
+                    还有 ${count - 10} 条记录... 
+                    <a href="#" class="text-primary ms-2" onclick="showAllRecords(); return false;">
+                        <i class="fas fa-list me-1"></i>查看全部
+                    </a>
+                </td>
+            </tr>
+        `;
+    }
+    
+    html += '</tbody></table></div>';
+    return html;
+}
+
+// 全局变量存储当前查看的匹配类型和数据
+let currentMatchType = '';
+let currentMatchData = [];
+
+// 生成模拟数据
+function generateAllMatchData() {
+    const exactMatches = [];
+    const similarMatches = [];
+    const unmatchedItems = [];
+    
+    // 生成精确匹配数据
+    const medicalItems = ['医用口罩', '医用防护服', '医用手套', '消毒液', '体温计', '血压计', '听诊器', '注射器', '输液器', '纱布'];
+    const manufacturers = ['强生医疗', '3M医疗', '迈瑞医疗', '鱼跃医疗', '乐普医疗', '华大基因', '联影医疗', '东软医疗', '安图生物', '达安基因'];
+    
+    for(let i = 0; i < 708; i++) {
+        const item = medicalItems[i % medicalItems.length];
+        const manufacturer = manufacturers[i % manufacturers.length];
+        const similarity = 0.9 + Math.random() * 0.1;
+        
+        exactMatches.push({
+            id: i + 1,
+            inputMaterial: `${item} ${i + 1}`,
+            matchedResult: `一次性${item}`,
+            specification: `标准规格 ${String.fromCharCode(65 + (i % 26))}`,
+            manufacturer: manufacturer,
+            similarity: similarity,
+            status: 'confirmed',
+            statusText: '已确认',
+            statusClass: 'success'
+        });
+    }
+    
+    // 生成相似匹配数据
+    for(let i = 0; i < 295; i++) {
+        const item = medicalItems[i % medicalItems.length];
+        const manufacturer = manufacturers[i % manufacturers.length];
+        const similarity = 0.7 + Math.random() * 0.2;
+        
+        similarMatches.push({
+            id: i + 1,
+            inputMaterial: `${item} ${i + 1}`,
+            matchedResult: `医用${item}(相似)`,
+            specification: `相似规格 ${String.fromCharCode(65 + (i % 26))}`,
+            manufacturer: manufacturer,
+            similarity: similarity,
+            status: 'pending',
+            statusText: '待审核',
+            statusClass: 'warning'
+        });
+    }
+    
+    // 生成未匹配数据
+    const specialItems = ['特殊医疗设备', '进口医疗器械', '实验室设备', '专用医疗工具', '高端检测设备'];
+    for(let i = 0; i < 177; i++) {
+        const item = specialItems[i % specialItems.length];
+        
+        unmatchedItems.push({
+            id: i + 1,
+            inputMaterial: `${item} ${i + 1}`,
+            matchedResult: '无匹配结果',
+            specification: '规格未知',
+            manufacturer: '厂家未知',
+            similarity: 0,
+            status: 'unmatched',
+            statusText: '无匹配',
+            statusClass: 'danger'
+        });
+    }
+    
+    return {
+        exact: exactMatches,
+        similar: similarMatches,
+        unmatched: unmatchedItems
+    };
+}
+
+// 显示全部记录
+function showAllRecords() {
+    const allData = generateAllMatchData();
+    let dataToShow = [];
+    let title = '';
+    
+    // 根据当前匹配类型确定显示的数据
+    switch(currentMatchType) {
+        case 'exact':
+            dataToShow = allData.exact;
+            title = '全部精确匹配记录';
+            break;
+        case 'similar':
+            dataToShow = allData.similar;
+            title = '全部相似匹配记录';
+            break;
+        case 'unmatched':
+            dataToShow = allData.unmatched;
+            title = '全部未匹配记录';
+            break;
+        default:
+            dataToShow = [...allData.exact, ...allData.similar, ...allData.unmatched];
+            title = '全部匹配记录';
+    }
+    
+    // 存储当前数据供导出使用
+    currentMatchData = dataToShow;
+    
+    // 设置模态框标题
+    $('#allRecordsModalTitle').text(title);
+    $('#totalRecordsCount').text(dataToShow.length);
+    
+    // 生成表格内容
+    generateAllRecordsTable(dataToShow);
+    
+    // 绑定搜索和筛选事件
+    bindAllRecordsEvents();
+    
+    // 关闭详情模态框，显示全部记录模态框
+    $('#matchDetailsModal').modal('hide');
+    $('#allRecordsModal').modal('show');
+}
+
+// 生成全部记录表格
+function generateAllRecordsTable(data) {
+    let html = '';
+    
+    data.forEach((item, index) => {
+        html += `
+            <tr>
+                <td>
+                    <input type="checkbox" class="form-check-input record-checkbox" value="${item.id}">
+                </td>
+                <td>${index + 1}</td>
+                <td>${item.inputMaterial}</td>
+                <td>${item.matchedResult}</td>
+                <td>${item.specification}</td>
+                <td>${item.manufacturer}</td>
+                <td>
+                    ${item.similarity > 0 ? `<span class="badge bg-${item.statusClass}">${(item.similarity * 100).toFixed(1)}%</span>` : '-'}
+                </td>
+                <td>
+                    <span class="badge bg-${item.statusClass}">${item.statusText}</span>
+                </td>
+                <td>
+                    ${generateRecordActions(item)}
+                </td>
+            </tr>
+        `;
+    });
+    
+    $('#allRecordsTableBody').html(html);
+}
+
+// 生成记录操作按钮
+function generateRecordActions(item) {
+    switch(item.status) {
+        case 'confirmed':
+            return '<button class="btn btn-sm btn-outline-primary" onclick="viewDetails(this)">查看</button>';
+        case 'pending':
+            return `
+                <button class="btn btn-sm btn-outline-success me-1" onclick="confirmMatch(this, ${item.id})">确认</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="rejectMatch(this, ${item.id})">拒绝</button>
+            `;
+        case 'unmatched':
+            return `
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="manualMatch(this, ${item.id})">手动匹配</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="skipMatch(this, ${item.id})">跳过</button>
+            `;
+        default:
+            return '';
+    }
+}
+
+// 绑定全部记录的事件
+function bindAllRecordsEvents() {
+    // 全选/取消全选
+    $('#selectAllRecords').off('change').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $('.record-checkbox').prop('checked', isChecked);
+        updateSelectedCount();
+    });
+    
+    // 单个复选框变化
+    $(document).off('change', '.record-checkbox').on('change', '.record-checkbox', function() {
+        updateSelectedCount();
+        
+        // 更新全选状态
+        const totalCheckboxes = $('.record-checkbox').length;
+        const checkedCheckboxes = $('.record-checkbox:checked').length;
+        $('#selectAllRecords').prop('indeterminate', checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+        $('#selectAllRecords').prop('checked', checkedCheckboxes === totalCheckboxes);
+    });
+    
+    // 搜索功能
+    $('#recordSearch').off('input').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        filterRecords(searchTerm, $('#recordFilter').val());
+    });
+    
+    // 筛选功能
+    $('#recordFilter').off('change').on('change', function() {
+        const filterValue = $(this).val();
+        filterRecords($('#recordSearch').val().toLowerCase(), filterValue);
+    });
+}
+
+// 更新选中数量
+function updateSelectedCount() {
+    const selectedCount = $('.record-checkbox:checked').length;
+    $('#selectedRecordsCount').text(selectedCount);
+}
+
+// 筛选记录
+function filterRecords(searchTerm, filterValue) {
+    $('#allRecordsTableBody tr').each(function() {
+        const row = $(this);
+        const text = row.text().toLowerCase();
+        const statusBadge = row.find('.badge').last();
+        const status = statusBadge.length > 0 ? statusBadge.text() : '';
+        
+        let showRow = true;
+        
+        // 搜索过滤
+        if (searchTerm && !text.includes(searchTerm)) {
+            showRow = false;
+        }
+        
+        // 状态过滤
+        if (filterValue !== 'all') {
+            const statusMap = {
+                'confirmed': '已确认',
+                'pending': '待审核',
+                'unmatched': '无匹配'
+            };
+            if (status !== statusMap[filterValue]) {
+                showRow = false;
+            }
+        }
+        
+        row.toggle(showRow);
+    });
+}
+
+// 匹配操作函数
+function confirmMatch(button, id) {
+    $(button).closest('tr').find('.badge').removeClass('bg-warning').addClass('bg-success').text('已确认');
+    $(button).parent().html('<button class="btn btn-sm btn-outline-primary" onclick="viewDetails(this)">查看</button>');
+    showSuccessMessage(`已确认匹配项目 ${id}`);
+}
+
+function rejectMatch(button, id) {
+    $(button).closest('tr').find('.badge').removeClass('bg-warning').addClass('bg-danger').text('已拒绝');
+    $(button).parent().html('<button class="btn btn-sm btn-outline-secondary">已拒绝</button>');
+    showSuccessMessage(`已拒绝匹配项目 ${id}`);
+}
+
+function manualMatch(button, id) {
+    showInfoMessage(`开始手动匹配项目 ${id}...`);
+    // 这里可以打开手动匹配对话框
+}
+
+function skipMatch(button, id) {
+    $(button).closest('tr').addClass('table-secondary');
+    $(button).parent().html('<span class="text-muted">已跳过</span>');
+    showInfoMessage(`已跳过项目 ${id}`);
+}
+
+function viewDetails(button) {
+    showInfoMessage('查看详细信息...');
+    // 这里可以显示详细信息
+}
+
+// 导出功能
+function exportMatchDetails() {
+    const selectedType = currentMatchType || 'current';
+    exportToExcel(getCurrentViewData(), `匹配详情_${selectedType}_${new Date().getTime()}`);
+}
+
+function exportAllRecords() {
+    const selectedIds = $('.record-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+    
+    let dataToExport = currentMatchData;
+    if (selectedIds.length > 0) {
+        dataToExport = currentMatchData.filter(item => selectedIds.includes(item.id.toString()));
+    }
+    
+    exportToExcel(dataToExport, `全部记录_${new Date().getTime()}`);
+}
+
+function exportToExcel(data, filename) {
+    // 创建CSV格式的数据
+    const headers = ['序号', '输入物料', '匹配结果', '规格型号', '生产厂家', '匹配度', '状态'];
+    let csvContent = headers.join(',') + '\n';
+    
+    data.forEach((item, index) => {
+        const row = [
+            index + 1,
+            `"${item.inputMaterial}"`,
+            `"${item.matchedResult}"`,
+            `"${item.specification}"`,
+            `"${item.manufacturer}"`,
+            item.similarity > 0 ? `${(item.similarity * 100).toFixed(1)}%` : '-',
+            `"${item.statusText}"`
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+    
+    // 创建下载链接
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename + '.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showSuccessMessage(`已导出 ${data.length} 条记录到 ${filename}.csv`);
+}
+
+function getCurrentViewData() {
+    // 从当前显示的表格中获取数据
+    const rows = $('#matchDetailsContent tbody tr').not(':last');
+    const data = [];
+    
+    rows.each(function(index) {
+        const cells = $(this).find('td');
+        if (cells.length >= 4) {
+            data.push({
+                id: index + 1,
+                inputMaterial: cells.eq(0).text(),
+                matchedResult: cells.eq(1).text(),
+                specification: cells.eq(1).text(), // 简化处理
+                manufacturer: '标准厂家', // 简化处理
+                similarity: parseFloat(cells.eq(2).find('.badge').text()) / 100 || 0,
+                statusText: cells.eq(3).find('.badge').text()
+            });
+        }
+    });
+    
+    return data;
+}
+
+// 批量处理功能
+function batchProcessSelected() {
+    const selectedIds = $('.record-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        showWarningMessage('请先选择要处理的记录');
+        return;
+    }
+    
+    if (confirm(`确定要批量处理选中的 ${selectedIds.length} 条记录吗？`)) {
+        showSuccessMessage(`正在批量处理 ${selectedIds.length} 条记录...`);
+        
+        // 模拟批量处理
+        setTimeout(() => {
+            selectedIds.forEach(id => {
+                $(`.record-checkbox[value="${id}"]`).closest('tr').find('.badge').removeClass('bg-warning bg-danger').addClass('bg-success').text('已处理');
+            });
+            showSuccessMessage('批量处理完成！');
+        }, 2000);
+    }
+    
+    $('#matchDetailsModal').modal('hide');
+}
+
+function batchConfirmSelected() {
+    const selectedIds = $('.record-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        showWarningMessage('请先选择要确认的记录');
+        return;
+    }
+    
+    selectedIds.forEach(id => {
+        const row = $(`.record-checkbox[value="${id}"]`).closest('tr');
+        row.find('.badge').removeClass('bg-warning bg-danger').addClass('bg-success').text('已确认');
+        row.find('td:last').html('<button class="btn btn-sm btn-outline-primary" onclick="viewDetails(this)">查看</button>');
+    });
+    
+    showSuccessMessage(`已确认 ${selectedIds.length} 条记录`);
+}
+
+function batchProcessAllSelected() {
+    const selectedIds = $('.record-checkbox:checked').map(function() {
+        return $(this).val();
+    }).get();
+    
+    if (selectedIds.length === 0) {
+        showWarningMessage('请先选择要处理的记录');
+        return;
+    }
+    
+    if (confirm(`确定要批量处理选中的 ${selectedIds.length} 条记录吗？这将根据每条记录的状态执行相应的处理操作。`)) {
+        showSuccessMessage(`正在批量处理 ${selectedIds.length} 条记录...`);
+        
+        // 模拟批量处理
+        setTimeout(() => {
+            selectedIds.forEach(id => {
+                const row = $(`.record-checkbox[value="${id}"]`).closest('tr');
+                const badge = row.find('.badge').last();
+                
+                if (badge.text() === '待审核') {
+                    badge.removeClass('bg-warning').addClass('bg-success').text('已确认');
+                    row.find('td:last').html('<button class="btn btn-sm btn-outline-primary" onclick="viewDetails(this)">查看</button>');
+                } else if (badge.text() === '无匹配') {
+                    badge.removeClass('bg-danger').addClass('bg-info').text('待处理');
+                    row.find('td:last').html('<button class="btn btn-sm btn-outline-info">处理中</button>');
+                }
+            });
+            showSuccessMessage('批量处理完成！');
+        }, 2000);
+    }
+}
+
+// 修改原有的showMatchDetails函数，添加类型存储
+function showMatchDetails(matchType, count) {
+    // 存储当前匹配类型
+    currentMatchType = matchType;
+    
+    let title, description, details;
+    
+    switch(matchType) {
+        case 'exact':
+            title = '精确匹配详情';
+            description = `共有 ${count} 条数据实现了精确匹配，匹配度≥90%`;
+            details = generateExactMatchDetails(count);
+            break;
+        case 'similar':
+            title = '相似匹配详情';
+            description = `共有 ${count} 条数据为相似匹配，匹配度70%-90%`;
+            details = generateSimilarMatchDetails(count);
+            break;
+        case 'unmatched':
+            title = '未匹配详情';
+            description = `共有 ${count} 条数据未找到匹配，需要人工处理`;
+            details = generateUnmatchedDetails(count);
+            break;
+    }
+    
+    // 设置模态框内容
+    $('#matchDetailsModalTitle').text(title);
+    $('#matchDetailsDescription').text(description);
+    $('#matchDetailsContent').html(details);
+    
+    // 显示模态框
+    $('#matchDetailsModal').modal('show');
+}
 </script>
 {% endblock %}

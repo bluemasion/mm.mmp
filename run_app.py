@@ -24,13 +24,13 @@ if __name__ == '__main__':
     print(f"- Python版本: {sys.version}")
     print(f"- 工作目录: {current_dir}")
     print(f"- Flask版本: {app.__class__.__module__}")
-    print("- 服务地址: http://localhost:5005")
+    print("- 服务地址: http://localhost:5001")
     print("=" * 50)
     
     # 启动Flask应用
     app.run(
         host='0.0.0.0',    # 允许外部访问
-        port=5005,         # 使用5005端口避免冲突
+        port=5001,         # 使用5001端口避免冲突
         debug=True,        # 开发模式
         threaded=True      # 多线程支持
     )
