@@ -1,0 +1,17 @@
+2025-09-25 15:35:35,590 - INFO - 数据库表结构初始化完成
+2025-09-25 15:35:35,591 - INFO - 数据库会话管理器初始化完成: /Users/mason/Desktop/code /mmp/sessions.db
+2025-09-25 15:35:35,592 - INFO - 业务数据表初始化完成
+==================================================
+  MMP物料主数据管理智能应用
+==================================================
+启动信息:
+- Python版本: 3.8.10 (v3.8.10:3d8993a744, May  3 2021, 08:55:58) 
+[Clang 6.0 (clang-600.0.57)]
+- 工作目录: /Users/mason/Desktop/code /mmp
+- Flask版本: flask.app
+- 服务地址: http://localhost:5001
+==================================================
+ * Serving Flask app 'app.web_app'
+ * Debug mode: off
+Address already in use
+Port 5001 is in use by another program. Either identify and stop that program, or start the server with a different port.

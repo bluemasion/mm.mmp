@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript事件测试</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>JavaScript事件机制测试</h1>
+    
+    <button onclick="testEvent()">测试自定义事件</button>
+    <button onclick="testAPI()">测试API调用</button>
+    
+    <div id="result" style="margin: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        // 测试自定义事件
+        function testEvent() {
+            const resultDiv = document.getElementById('result');
+            
+            // 添加事件监听器
+            const handleTestComplete = (event) => {
+                const { message, count } = event.detail;
+                resultDiv.innerHTML = `
+                    <h3>事件接收成功!</h3>
+                    <p>消息: ${message}</p>
+                    <p>数量: ${count}</p>
+                `;
+                window.removeEventListener('testComplete', handleTestComplete);
+            };
+            
+            window.addEventListener('testComplete', handleTestComplete);
+            
+            // 触发事件
+            setTimeout(() => {
+                const event = new CustomEvent('testComplete', {
+                    detail: { 
+                        message: "测试成功",
+                        count: 123 
+                    }
+                });
+                window.dispatchEvent(event);
+            }, 1000);
+            
+            resultDiv.innerHTML = '<p>等待事件触发...</p>';
+        }
+        
+        // 测试API调用
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>正在调用API...</p>';
+            
+            try {
+                const testData = {
+                    "materials": [["M001", "304不锈钢疏水器", "疏水器", "管道配件", "DN25", "", "个"]],
+                    "template": "universal-manufacturing"
+                };
+                
+                const response = await fetch('/api/batch_material_matching', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>API调用成功!</h3>
+                    <p>成功: ${result.success}</p>
+                    <p>结果数量: ${result.results ? result.results.length : 0}</p>
+                    <p>总计: ${result.total}</p>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>API调用失败!</h3>
+                    <p>错误: ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # main.py
 import logging
 import pandas as pd

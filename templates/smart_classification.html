@@ -1,0 +1,558 @@
+{% extends "base.html" %}
+
+{% block title %}智能物料分类 - MMP智能物料管理系统{% endblock %}
+
+{% block head %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #17a2b8;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --text-muted: #6c757d;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --border-radius: 0.375rem;
+    }
+    
+    .classification-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2.5rem 0;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+    }
+    
+    .classification-header h2 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 2.2rem;
+    }
+    
+    .classification-header p {
+        margin: 0.8rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.15rem;
+    }
+    
+    .input-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        outline: 0;
+    }
+    
+    .classify-btn {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, var(--info-color) 100%);
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: var(--border-radius);
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .classify-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .classify-btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .results-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        display: none;
+    }
+    
+    .result-item {
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .result-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(155, 89, 182, 0.1) 100%);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease;
+        z-index: 1;
+    }
+    
+    .result-item:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .result-item:hover {
+        border-color: var(--secondary-color);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .result-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .result-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0;
+    }
+    
+    .confidence-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .confidence-high { background: #d4edda; color: #155724; }
+    .confidence-medium { background: #fff3cd; color: #856404; }
+    .confidence-low { background: #f8d7da; color: #721c24; }
+    
+    .result-description {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    
+    .result-attributes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .attribute-item {
+        background: var(--light-bg);
+        padding: 0.75rem;
+        border-radius: 6px;
+        border-left: 3px solid var(--secondary-color);
+    }
+    
+    .attribute-label {
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .attribute-value {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+        display: none;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-muted);
+        display: none;
+    }
+    
+    .input-hints {
+        background: #e7f3ff;
+        border-left: 4px solid var(--info-color);
+        padding: 1rem;
+        margin-top: 1rem;
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    }
+    
+    .input-hints h6 {
+        color: var(--info-color);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .hint-examples {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="classification-header text-center">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <a href="/template-selection" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-arrow-left me-2"></i>返回模板选择
+                    </a>
+                    <a href="/category-templates" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-th-large me-2"></i>分类模板
+                    </a>
+                </div>
+                <div class="page-actions">
+                    <span class="badge bg-light text-dark">智能分类系统</span>
+                </div>
+            </div>
+            <h2>
+                <i class="fas fa-brain me-3"></i>
+                智能物料分类
+            </h2>
+            <p>
+                基于多维特征属性的智能分类系统，支持物料名称、规格参数、材质等综合分析
+            </p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 物料信息输入区域 -->
+        <div class="input-section">
+            <h4 class="mb-4">
+                <i class="fas fa-edit me-2 text-primary"></i>
+                物料信息录入
+            </h4>
+            
+            <form id="classificationForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="materialName" class="form-label">
+                                <i class="fas fa-tag me-1"></i>物料名称 *
+                            </label>
+                            <input type="text" class="form-control" id="materialName" 
+                                   placeholder="如：金属软管、疏水器、法兰等" required>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="materialUnit" class="form-label">
+                                <i class="fas fa-balance-scale me-1"></i>计量单位
+                            </label>
+                            <select class="form-control" id="materialUnit">
+                                <option value="">请选择</option>
+                                <option value="个">个</option>
+                                <option value="根">根</option>
+                                <option value="件">件</option>
+                                <option value="套">套</option>
+                                <option value="台">台</option>
+                                <option value="kg">kg</option>
+                                <option value="m">m</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="materialSpec" class="form-label">
+                        <i class="fas fa-cogs me-1"></i>规格参数
+                    </label>
+                    <textarea class="form-control" id="materialSpec" rows="3" 
+                              placeholder="如：DN25 PN2.0，材质304SS，长度3米等详细技术参数"></textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="materialDN" class="form-label">
+                                <i class="fas fa-circle me-1"></i>公称直径 (DN)
+                            </label>
+                            <input type="text" class="form-control" id="materialDN" 
+                                   placeholder="如：DN15, DN25, DN50">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="materialPN" class="form-label">
+                                <i class="fas fa-tachometer-alt me-1"></i>压力等级 (PN)
+                            </label>
+                            <input type="text" class="form-control" id="materialPN" 
+                                   placeholder="如：PN2.0, PN16, CL150">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="materialMaterial" class="form-label">
+                                <i class="fas fa-atom me-1"></i>材质
+                            </label>
+                            <input type="text" class="form-control" id="materialMaterial" 
+                                   placeholder="如：304SS, CS, 20#, A105">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button type="submit" class="classify-btn">
+                        <i class="fas fa-search me-2"></i>
+                        智能分类分析
+                    </button>
+                </div>
+            </form>
+            
+            <!-- 输入提示 -->
+            <div class="input-hints">
+                <h6><i class="fas fa-lightbulb me-2"></i>输入提示</h6>
+                <div class="hint-examples">
+                    <strong>物料名称示例：</strong>金属软管、疏水器、对焊法兰、三通、弯头等<br>
+                    <strong>规格参数示例：</strong>DN25 PN2.0，材质304SS，长度3米，法兰连接<br>
+                    <strong>特征属性：</strong>系统将自动识别DN、PN、材质、温度、长度等关键参数
+                </div>
+            </div>
+        </div>
+        
+        <!-- 加载状态 -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">正在分析...</span>
+            </div>
+            <p class="mt-3 text-muted">正在进行智能分类分析，请稍候...</p>
+        </div>
+        
+        <!-- 分类结果区域 -->
+        <div class="results-section" id="resultsSection">
+            <h4 class="mb-4">
+                <i class="fas fa-chart-line me-2 text-success"></i>
+                分类推荐结果
+            </h4>
+            <div id="resultsContainer">
+                <!-- 结果将通过JavaScript动态加载 -->
+            </div>
+        </div>
+        
+        <!-- 无结果状态 -->
+        <div class="no-results" id="noResults">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">未找到匹配的分类</h5>
+            <p class="text-muted">请尝试调整输入信息或检查物料名称是否正确</p>
+        </div>
+    </div>
+</div>
+
+<script>
+class SmartClassification {
+    constructor() {
+        this.initializeEventListeners();
+    }
+    
+    initializeEventListeners() {
+        const form = document.getElementById('classificationForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.performClassification();
+        });
+    }
+    
+    async performClassification() {
+        const materialData = this.collectMaterialData();
+        
+        if (!materialData.name.trim()) {
+            alert('请输入物料名称');
+            return;
+        }
+        
+        this.showLoading();
+        
+        try {
+            const response = await fetch('/api/smart_classification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(materialData)
+            });
+            
+            if (!response.ok) {
+                throw new Error('分类请求失败');
+            }
+            
+            const results = await response.json();
+            this.displayResults(results);
+            
+        } catch (error) {
+            console.error('分类错误:', error);
+            this.showError('分类分析失败，请稍后重试');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    collectMaterialData() {
+        return {
+            name: document.getElementById('materialName').value.trim(),
+            spec: document.getElementById('materialSpec').value.trim(),
+            unit: document.getElementById('materialUnit').value,
+            dn: document.getElementById('materialDN').value.trim(),
+            pn: document.getElementById('materialPN').value.trim(),
+            material: document.getElementById('materialMaterial').value.trim()
+        };
+    }
+    
+    showLoading() {
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('resultsSection').style.display = 'none';
+        document.getElementById('noResults').style.display = 'none';
+        
+        const button = document.querySelector('.classify-btn');
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>分析中...';
+    }
+    
+    hideLoading() {
+        document.getElementById('loadingSpinner').style.display = 'none';
+        
+        const button = document.querySelector('.classify-btn');
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-search me-2"></i>智能分类分析';
+    }
+    
+    displayResults(results) {
+        const container = document.getElementById('resultsContainer');
+        const resultsSection = document.getElementById('resultsSection');
+        const noResults = document.getElementById('noResults');
+        
+        if (!results || results.length === 0) {
+            resultsSection.style.display = 'none';
+            noResults.style.display = 'block';
+            return;
+        }
+        
+        container.innerHTML = results.map((result, index) => this.createResultCard(result, index)).join('');
+        resultsSection.style.display = 'block';
+        noResults.style.display = 'none';
+        
+        // 滚动到结果区域
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    createResultCard(result, index) {
+        const confidenceClass = this.getConfidenceClass(result.confidence);
+        const confidenceText = this.getConfidenceText(result.confidence);
+        
+        return `
+            <div class="result-item" onclick="smartClassification.selectResult(${index})">
+                <div class="result-content">
+                    <div class="result-header">
+                        <h5 class="result-title">${result.category}</h5>
+                        <span class="confidence-badge ${confidenceClass}">
+                            ${confidenceText} ${result.confidence}%
+                        </span>
+                    </div>
+                    
+                    <p class="result-description">${result.description}</p>
+                    
+                    <div class="result-attributes">
+                        ${result.attributes.map(attr => `
+                            <div class="attribute-item">
+                                <div class="attribute-label">${attr.label}</div>
+                                <div class="attribute-value">${attr.value}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    getConfidenceClass(confidence) {
+        if (confidence >= 80) return 'confidence-high';
+        if (confidence >= 60) return 'confidence-medium';
+        return 'confidence-low';
+    }
+    
+    getConfidenceText(confidence) {
+        if (confidence >= 80) return '高匹配';
+        if (confidence >= 60) return '中匹配';
+        return '低匹配';
+    }
+    
+    selectResult(index) {
+        // 这里可以添加选择结果的逻辑
+        console.log('选择了结果:', index);
+        // 可以跳转到详细页面或进行下一步操作
+    }
+    
+    showError(message) {
+        const container = document.getElementById('resultsContainer');
+        container.innerHTML = `
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+            </div>
+        `;
+        document.getElementById('resultsSection').style.display = 'block';
+    }
+}
+
+// 初始化
+let smartClassification;
+document.addEventListener('DOMContentLoaded', function() {
+    smartClassification = new SmartClassification();
+});
+</script>
+{% endblock %}

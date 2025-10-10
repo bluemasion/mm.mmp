@@ -1,0 +1,1620 @@
+{% extends "base.html" %}
+
+{% block title %}智能物料处理工作流 - MMP智能物料管理系统{% endblock %}
+
+{% block head %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #17a2b8;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --text-muted: #6c757d;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --border-radius: 0.375rem;
+    }
+    
+    .workflow-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2.5rem 0;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+    }
+    
+    .workflow-header h2 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 2.2rem;
+    }
+    
+    .workflow-steps {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 2rem 0;
+        padding: 1rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        flex: 1;
+        max-width: 200px;
+    }
+    
+    .step-number {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--light-bg);
+        border: 3px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .step.active .step-number {
+        background: var(--secondary-color);
+        border-color: var(--secondary-color);
+        color: white;
+    }
+    
+    .step.completed .step-number {
+        background: var(--success-color);
+        border-color: var(--success-color);
+        color: white;
+    }
+    
+    .step-title {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .step-description {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    
+    .step-connector {
+        position: absolute;
+        top: 30px;
+        right: -50%;
+        width: 100%;
+        height: 3px;
+        background: var(--border-color);
+        z-index: -1;
+    }
+    
+    .step:last-child .step-connector {
+        display: none;
+    }
+    
+    .step.completed .step-connector {
+        background: var(--success-color);
+    }
+    
+    .workflow-content {
+        min-height: 600px;
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+    }
+    
+    .step-panel {
+        display: none;
+    }
+    
+    .step-panel.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .upload-area {
+        border: 2px dashed var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 3rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: #fdfdff;
+    }
+    
+    .upload-area:hover,
+    .upload-area.dragover {
+        border-color: var(--secondary-color);
+        background: #f8f9ff;
+    }
+    
+    .upload-icon {
+        font-size: 4rem;
+        color: var(--secondary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .template-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .template-card {
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .template-card:hover {
+        border-color: var(--secondary-color);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .template-card.selected {
+        border-color: var(--success-color);
+        background: rgba(39, 174, 96, 0.1);
+        position: relative;
+    }
+    
+    .template-select-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(39, 174, 96, 0.9);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius);
+    }
+    
+    .template-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .template-name {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0;
+    }
+    
+    .template-badge {
+        background: var(--secondary-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+    
+    .matching-progress {
+        margin: 2rem 0;
+    }
+    
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+    
+    .results-table {
+        margin-top: 2rem;
+    }
+    
+    .result-row {
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .result-row:hover {
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .result-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0;
+    }
+    
+    .input-material {
+        flex: 1;
+        background: var(--light-bg);
+        padding: 1rem;
+        border-radius: 6px;
+        border-left: 4px solid var(--info-color);
+    }
+    
+    .match-result {
+        flex: 1.5;
+        background: #fff3cd;
+        padding: 1rem;
+        border-radius: 6px;
+        border-left: 4px solid var(--warning-color);
+    }
+    
+    .classification-result {
+        flex: 1;
+        background: #d4edda;
+        padding: 1rem;
+        border-radius: 6px;
+        border-left: 4px solid var(--success-color);
+    }
+    
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .check-btn {
+        background: var(--success-color);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    
+    .check-btn:hover {
+        background: #219a52;
+    }
+    
+    .check-btn.checked {
+        background: #155724;
+    }
+
+    /* 新增表格样式 */
+    .results-comparison-table {
+        margin-top: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        background: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .results-comparison-table thead {
+        background: var(--dark-bg);
+        color: white;
+    }
+
+    .results-comparison-table th {
+        padding: 1rem 0.75rem;
+        text-align: center;
+        font-weight: 600;
+        border: 1px solid #495057;
+        vertical-align: middle;
+    }
+
+    .results-comparison-table td {
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        vertical-align: middle;
+        position: relative;
+    }
+
+    .result-table-row:hover {
+        background-color: var(--light-bg);
+    }
+
+    .material-name-cell {
+        background-color: #f8f9fa;
+        border-left: 4px solid var(--info-color);
+    }
+
+    .material-name-text {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.95rem;
+    }
+
+    .spec-cell {
+        background-color: #fff3cd;
+        border-left: 3px solid var(--warning-color);
+    }
+
+    .spec-text {
+        font-size: 0.9rem;
+        color: #856404;
+        word-break: break-word;
+    }
+
+    .match-result-cell {
+        background-color: #e7f3ff;
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .match-content,
+    .classification-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .match-text,
+    .classification-text {
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .confidence-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .confidence-badge {
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+        min-width: 50px;
+    }
+
+    .confidence-high {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .confidence-medium {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    .confidence-low {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .action-buttons .form-check-input {
+        margin: 0;
+    }
+
+    .description-cell {
+        background-color: #f0f8f0;
+        border-left: 3px solid #28a745;
+        max-width: 200px;
+    }
+
+    .description-text {
+        font-size: 0.85rem;
+        color: #495057;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-clamp: 2;
+    }
+
+    .code-cell {
+        background-color: #f8f9fa;
+        border-left: 3px solid #6c757d;
+        text-align: center;
+    }
+
+    .code-text {
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .classification-cell {
+        background-color: #d4edda;
+        border-left: 3px solid var(--success-color);
+    }
+
+    .classification-text {
+        color: #155724;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+        .results-comparison-table {
+            font-size: 0.8rem;
+        }
+        
+        .results-comparison-table th,
+        .results-comparison-table td {
+            padding: 0.5rem 0.3rem;
+        }
+        
+        .confidence-badge {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.3rem;
+        }
+    }
+    }
+    
+    .confidence-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .confidence-high {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .confidence-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .confidence-low {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    /* 分页样式 */
+    .pagination-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+    }
+    
+    .results-summary .badge {
+        font-size: 0.9rem;
+    }
+    
+    .page-size-selector .form-select {
+        min-width: 80px;
+    }
+    
+    .pagination {
+        margin-bottom: 0;
+    }
+    
+    .pagination .page-link {
+        color: var(--primary-color);
+        border: 1px solid var(--border-color);
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s ease;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+        color: white;
+    }
+    
+    .pagination .page-link:hover {
+        background-color: var(--light-bg);
+        border-color: var(--secondary-color);
+        color: var(--secondary-color);
+    }
+    
+    .pagination .page-item.disabled .page-link {
+        color: var(--text-muted);
+        background-color: white;
+        border-color: var(--border-color);
+    }
+    
+    .pagination .page-link i {
+        font-size: 0.8rem;
+    }
+    
+    /* 表格序号列样式 */
+    .results-comparison-table tbody tr:nth-child(odd) {
+        background-color: #f8f9fa;
+    }
+    
+    .results-comparison-table tbody tr:hover {
+        background-color: #e3f2fd;
+        transition: background-color 0.2s ease;
+    }
+    
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .btn-workflow {
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: var(--secondary-color);
+        color: white;
+        border: 2px solid var(--secondary-color);
+    }
+    
+    .btn-primary:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: var(--secondary-color);
+        border: 2px solid var(--secondary-color);
+    }
+    
+    .btn-secondary:hover {
+        background: var(--secondary-color);
+        color: white;
+    }
+    
+    .material-item {
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .material-spec {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="workflow-header text-center">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <a href="/template-selection" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-arrow-left me-2"></i>返回首页
+                    </a>
+                </div>
+                <div class="page-actions">
+                    <span class="badge bg-light text-dark">智能处理流程</span>
+                </div>
+            </div>
+            <h2>
+                <i class="fas fa-cogs me-3"></i>
+                智能物料处理工作流
+            </h2>
+            <p>
+                上传物料数据 → 选择分类模板 → 智能匹配分析 → 查看和调整结果
+            </p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 工作流步骤指示器 -->
+        <div class="workflow-steps">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-title">上传数据</div>
+                <div class="step-description">导入物料Excel/CSV文件</div>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-title">选择模板</div>
+                <div class="step-description">选择合适的分类模板</div>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-title">智能匹配</div>
+                <div class="step-description">执行智能分类和对码</div>
+                <div class="step-connector"></div>
+            </div>
+            <div class="step" id="step4">
+                <div class="step-number">4</div>
+                <div class="step-title">确认结果</div>
+                <div class="step-description">查看调整匹配结果</div>
+            </div>
+        </div>
+        
+        <!-- 工作流内容区域 -->
+        <div class="workflow-content">
+            <!-- 步骤1: 上传数据 -->
+            <div class="step-panel active" id="panel1">
+                <h4>
+                    <i class="fas fa-upload me-2 text-primary"></i>
+                    第一步：上传物料数据
+                </h4>
+                <p class="text-muted mb-4">支持Excel (.xlsx, .xls) 和 CSV (.csv) 格式的物料数据文件</p>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h5>拖拽文件到此处或点击选择文件</h5>
+                    <p class="text-muted">支持的格式：Excel (.xlsx, .xls) 和 CSV (.csv)</p>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+                    <button class="btn btn-primary mt-2" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-folder-open me-2"></i>选择文件
+                    </button>
+                </div>
+                
+                <!-- 文件预览区域 -->
+                <div id="filePreview" style="display: none;">
+                    <h5 class="mt-4">
+                        <i class="fas fa-eye me-2 text-info"></i>
+                        数据预览
+                    </h5>
+                    <div id="previewContent"></div>
+                </div>
+                
+                <div class="navigation-buttons">
+                    <div></div>
+                    <button class="btn-workflow btn-primary" onclick="nextStep(2)" id="nextStep1" disabled>
+                        下一步：选择模板
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 步骤2: 选择模板 -->
+            <div class="step-panel" id="panel2">
+                <h4>
+                    <i class="fas fa-layer-group me-2 text-primary"></i>
+                    第二步：选择分类模板
+                </h4>
+                <p class="text-muted mb-4">根据您的物料类型选择合适的分类模板</p>
+                
+                <!-- 模板筛选控件 -->
+                <div class="template-filter mb-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <label for="templateFilter" class="form-label">筛选模板:</label>
+                            <select class="form-select" id="templateFilter" onchange="workflowManager.filterTemplates()">
+                                <option value="all">全部模板</option>
+                                <option value="manufacturing">制造业</option>
+                                <option value="chemical">化工行业</option>
+                                <option value="mechanical">机械工程</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="selected-template-info" id="selectedTemplateInfo" style="display:none;">
+                                <div class="alert alert-success mb-0">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    已选择: <strong id="selectedTemplateName"></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 模板选择区，初始为空，由JS动态渲染 -->
+                <div class="template-grid" id="templateGrid"></div>
+                <div id="templateError" style="display:none;color:red;"></div>
+                
+                <div class="navigation-buttons">
+                    <button class="btn-workflow btn-secondary" onclick="previousStep(1)">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        上一步
+                    </button>
+                    <button class="btn-workflow btn-primary" onclick="nextStep(3)" id="nextStep2" disabled>
+                        下一步：开始匹配
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 步骤3: 智能匹配 -->
+            <div class="step-panel" id="panel3">
+                <h4>
+                    <i class="fas fa-brain me-2 text-primary"></i>
+                    第三步：智能匹配处理
+                </h4>
+                <p class="text-muted mb-4">系统正在对您的物料数据执行智能分类和对码匹配</p>
+                <div class="matching-progress">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>匹配进度</span>
+                        <span id="progressText">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-primary" role="progressbar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div id="matchingStatus">
+                    <div class="text-center py-4" id="matchingStatusContent">
+                        <p>请点击下方“开始匹配”按钮，系统将自动对您的物料数据进行智能分类和对码。</p>
+                    </div>
+                </div>
+                <div class="navigation-buttons">
+                    <button class="btn-workflow btn-secondary" onclick="previousStep(2)">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        上一步
+                    </button>
+                    <button class="btn-workflow btn-success" id="startMatchingBtn" onclick="startMatchingAndProgress()">
+                        <i class="fas fa-play me-2"></i>开始匹配
+                    </button>
+                    <button class="btn-workflow btn-primary" onclick="nextStep(4)" id="nextStep3" disabled>
+                        查看结果
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 步骤4: 确认结果 -->
+            <div class="step-panel" id="panel4">
+                <h4>
+                    <i class="fas fa-check-circle me-2 text-success"></i>
+                    第四步：确认匹配结果
+                </h4>
+                <p class="text-muted mb-4">请查看匹配结果，您可以调整分类或确认对照结果</p>
+                
+                <div class="results-table" id="resultsTable">
+                    <!-- 结果将通过JavaScript动态加载 -->
+                </div>
+                
+                <div class="navigation-buttons">
+                    <button class="btn-workflow btn-secondary" onclick="previousStep(3)">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        重新匹配
+                    </button>
+                    <button class="btn-workflow btn-primary" onclick="saveResults()">
+                        <i class="fas fa-save me-2"></i>
+                        保存结果
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+class WorkflowManager {
+    constructor() {
+        this.currentStep = 1;
+        this.uploadedData = null;
+        this.selectedTemplate = null;
+        this.matchingResults = [];
+        
+        this.initializeEventListeners();
+        this.loadTemplates();
+    }
+    
+    initializeEventListeners() {
+        // 文件上传事件
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        
+        fileInput.addEventListener('change', (e) => {
+            this.handleFileUpload(e.target.files[0]);
+        });
+        
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleFileUpload(files[0]);
+            }
+        });
+        
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+    }
+    
+    async handleFileUpload(file) {
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/upload_material_data', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.uploadedData = result.data;
+                this.displayFilePreview(result);
+                document.getElementById('nextStep1').disabled = false;
+            } else {
+                alert('文件上传失败：' + result.error);
+            }
+            
+        } catch (error) {
+            console.error('上传错误:', error);
+            alert('文件上传失败，请重试');
+        }
+    }
+    
+    displayFilePreview(result) {
+        const preview = document.getElementById('filePreview');
+        const content = document.getElementById('previewContent');
+        
+        const stats = result.stats || {};
+        
+        content.innerHTML = `
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-list-ol fa-2x text-primary mb-2"></i>
+                            <h5>总记录数</h5>
+                            <h3 class="text-primary">${stats.total || 0}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <i class="fas fa-columns fa-2x text-info mb-2"></i>
+                            <h5>字段数量</h5>
+                            <h3 class="text-info">${stats.columns || 0}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h5>数据有效性</h5>
+                            <h3 class="text-success">良好</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="mt-3">数据示例（前5条）：</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            ${result.headers && result.headers.length > 0 ? result.headers.map(h => `<th>${h || '字段'}</th>`).join('') : '<th>暂无数据</th>'}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${result.preview && result.preview.length > 0 ? result.preview.map(row => 
+                            `<tr>${Array.isArray(row) ? row.map(cell => `<td>${cell !== null && cell !== undefined ? String(cell) : '-'}</td>`).join('') : '<td>数据格式错误</td>'}</tr>`
+                        ).join('') : '<tr><td colspan="100%" class="text-center text-muted">暂无预览数据</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        preview.style.display = 'block';
+    }
+    
+    async loadTemplates() {
+        try {
+            // 使用固定的模板数据
+            const templates = [
+                {
+                    id: 'universal-manufacturing',
+                    name: '物料统一模板',
+                    description: '适用于制造业全领域的通用分类体系',
+                    categories: 548,
+                    levels: 3,
+                    compatibility: '95%',
+                    category: 'manufacturing'
+                },
+                {
+                    id: 'chemical-specialized',
+                    name: '化工行业专用模板',
+                    description: '专门针对化工行业设计的分类模板',
+                    categories: 312,
+                    levels: 4,
+                    compatibility: '98%',
+                    category: 'chemical'
+                },
+                {
+                    id: 'mechanical-engineering',
+                    name: '机械工程模板',
+                    description: '专为机械制造行业打造',
+                    categories: 425,
+                    levels: 3,
+                    compatibility: '92%',
+                    category: 'mechanical'
+                }
+            ];
+            this.displayTemplates(templates);
+        } catch (error) {
+            document.getElementById('templateError').style.display = 'block';
+            document.getElementById('templateError').textContent = '加载模板失败: ' + error;
+            console.error('加载模板失败:', error);
+        }
+    }
+    
+    filterTemplates() {
+        const filter = document.getElementById('templateFilter').value;
+        const grid = document.getElementById('templateGrid');
+        
+        if (!this.allTemplates) return;
+        
+        let filteredTemplates = this.allTemplates;
+        
+        if (filter !== 'all') {
+            filteredTemplates = this.allTemplates.filter(template => 
+                template.category === filter
+            );
+        }
+        
+        if (filteredTemplates.length === 0) {
+            grid.innerHTML = '<div class="text-warning">没有找到匹配的模板。</div>';
+        } else {
+            grid.innerHTML = filteredTemplates.map(template => `
+                <div class="template-card" tabindex="0" data-template-id="${template.id}" data-category="${template.category || 'all'}" 
+                     onclick="workflowManager.selectTemplate('${template.id}', '${template.name}', event)">
+                    <div class="template-header">
+                        <h5 class="template-name">${template.name}</h5>
+                        <span class="template-badge">${template.compatibility}</span>
+                    </div>
+                    <p class="text-muted">${template.description}</p>
+                    <div class="row">
+                        <div class="col-4 text-center">
+                            <small class="text-muted">分类数</small>
+                            <div class="fw-bold">${template.categories}</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <small class="text-muted">层级</small>
+                            <div class="fw-bold">${template.levels}</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <small class="text-muted">适配度</small>
+                            <div class="fw-bold">${template.compatibility}</div>
+                        </div>
+                    </div>
+                    <div class="template-select-overlay" style="display:none;">
+                        <i class="fas fa-check-circle fa-3x text-light mb-2"></i>
+                        <div class="fw-bold">已选择</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+    
+    displayTemplates(templates) {
+        const grid = document.getElementById('templateGrid');
+        if (!Array.isArray(templates) || templates.length === 0) {
+            grid.innerHTML = '<div class="text-danger">未获取到可用模板，请稍后重试。</div>';
+            return;
+        }
+        
+        // 存储所有模板数据供筛选使用
+        this.allTemplates = templates;
+        
+        grid.innerHTML = templates.map(template => `
+            <div class="template-card" tabindex="0" data-template-id="${template.id}" data-category="${template.category || 'all'}" 
+                 onclick="workflowManager.selectTemplate('${template.id}', '${template.name}', event)">
+                <div class="template-header">
+                    <h5 class="template-name">${template.name}</h5>
+                    <span class="template-badge">${template.compatibility}</span>
+                </div>
+                <p class="text-muted">${template.description}</p>
+                <div class="row">
+                    <div class="col-4 text-center">
+                        <small class="text-muted">分类数</small>
+                        <div class="fw-bold">${template.categories}</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <small class="text-muted">层级</small>
+                        <div class="fw-bold">${template.levels}</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <small class="text-muted">适配度</small>
+                        <div class="fw-bold">${template.compatibility}</div>
+                    </div>
+                </div>
+                <div class="template-select-overlay" style="display:none;">
+                    <i class="fas fa-check-circle fa-3x text-light mb-2"></i>
+                    <div class="fw-bold">已选择</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    selectTemplate(templateId, templateName, evt) {
+        // 清除之前的选择
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.classList.remove('selected');
+            const overlay = card.querySelector('.template-select-overlay');
+            if (overlay) overlay.style.display = 'none';
+        });
+        
+        // 选择当前模板
+        if (evt && evt.currentTarget) {
+            evt.currentTarget.classList.add('selected');
+            const overlay = evt.currentTarget.querySelector('.template-select-overlay');
+            if (overlay) overlay.style.display = 'flex';
+        } else {
+            // 兼容旧调用
+            const card = document.querySelector(`[data-template-id="${templateId}"]`);
+            if (card) {
+                card.classList.add('selected');
+                const overlay = card.querySelector('.template-select-overlay');
+                if (overlay) overlay.style.display = 'flex';
+            }
+        }
+        
+        // 更新选择状态显示
+        this.selectedTemplate = templateId;
+        this.selectedTemplateName = templateName;
+        
+        const selectedInfo = document.getElementById('selectedTemplateInfo');
+        const selectedNameEl = document.getElementById('selectedTemplateName');
+        if (selectedInfo && selectedNameEl) {
+            selectedNameEl.textContent = templateName;
+            selectedInfo.style.display = 'block';
+        }
+        
+        document.getElementById('nextStep2').disabled = false;
+    }
+    
+    async startMatching() {
+        if (!this.uploadedData || !this.selectedTemplate) {
+            alert('请先完成前面的步骤');
+            return;
+        }
+        
+        console.log(`开始匹配处理: ${this.uploadedData.length}条数据, 模板: ${this.selectedTemplate}`);
+        
+        try {
+            const startTime = Date.now();
+            const response = await fetch('/api/batch_material_matching', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    materials: this.uploadedData,
+                    template: this.selectedTemplate
+                })
+            });
+            
+            const responseTime = Date.now() - startTime;
+            console.log(`API响应时间: ${responseTime}ms`);
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.matchingResults = result.results;
+                this.displayResults();
+                document.getElementById('nextStep3').disabled = false;
+                
+                // 触发自定义事件通知匹配完成
+                const event = new CustomEvent('matchingComplete', {
+                    detail: { 
+                        results: result.results,
+                        count: result.results.length 
+                    }
+                });
+                window.dispatchEvent(event);
+            } else {
+                alert('匹配失败：' + result.error);
+                // 触发失败事件
+                const event = new CustomEvent('matchingComplete', {
+                    detail: { 
+                        results: [],
+                        count: 0,
+                        error: result.error 
+                    }
+                });
+                window.dispatchEvent(event);
+            }
+            
+        } catch (error) {
+            console.error('匹配错误:', error);
+            alert('匹配过程出错，请重试');
+            
+            // 触发错误事件
+            const event = new CustomEvent('matchingComplete', {
+                detail: { 
+                    results: [],
+                    count: 0,
+                    error: `匹配过程出错: ${error.message}` 
+                }
+            });
+            window.dispatchEvent(event);
+        }
+    }
+    
+    displayResults() {
+        const resultsTable = document.getElementById('resultsTable');
+        
+        if (!this.matchingResults || this.matchingResults.length === 0) {
+            resultsTable.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">暂无匹配结果</h5>
+                </div>
+            `;
+            return;
+        }
+        
+        // 初始化分页参数
+        this.currentPage = this.currentPage || 1;
+        this.pageSize = 20;
+        this.totalResults = this.matchingResults.length;
+        this.totalPages = Math.ceil(this.totalResults / this.pageSize);
+        
+        // 渲染分页表格
+        this.renderPaginatedTable();
+    }
+    
+    renderPaginatedTable() {
+        const resultsTable = document.getElementById('resultsTable');
+        
+        // 计算当前页的数据范围
+        const startIndex = (this.currentPage - 1) * this.pageSize;
+        const endIndex = Math.min(startIndex + this.pageSize, this.totalResults);
+        const currentPageData = this.matchingResults.slice(startIndex, endIndex);
+        
+        // 创建分页表格HTML
+        resultsTable.innerHTML = `
+            <!-- 分页信息栏 -->
+            <div class="pagination-info d-flex justify-content-between align-items-center mb-3">
+                <div class="results-summary">
+                    <span class="badge bg-primary me-2">总计 ${this.totalResults} 条</span>
+                    <span class="text-muted">第 ${startIndex + 1}-${endIndex} 条，共 ${this.totalPages} 页</span>
+                </div>
+                <div class="page-size-selector">
+                    <label class="form-label me-2">每页显示：</label>
+                    <select class="form-select form-select-sm d-inline-block" style="width: auto;" onchange="workflowManager.changePageSize(this.value)">
+                        <option value="10" ${this.pageSize === 10 ? 'selected' : ''}>10条</option>
+                        <option value="20" ${this.pageSize === 20 ? 'selected' : ''}>20条</option>
+                        <option value="50" ${this.pageSize === 50 ? 'selected' : ''}>50条</option>
+                        <option value="100" ${this.pageSize === 100 ? 'selected' : ''}>100条</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 表格区域 -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover results-comparison-table">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 15%">物料名称</th>
+                            <th style="width: 18%">规格</th>
+                            <th style="width: 22%">对照结果</th>
+                            <th style="width: 15%">物料长描述</th>
+                            <th style="width: 10%">物料编码</th>
+                            <th style="width: 15%">分类结果</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${currentPageData.map((result, index) => {
+                            const globalIndex = startIndex + index + 1;
+                            return `
+                                <tr class="result-table-row">
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark">${globalIndex}</span>
+                                    </td>
+                                    <td class="material-name-cell">
+                                        <div class="material-name-text">${result.material_name || '未知物料'}</div>
+                                    </td>
+                                    <td class="spec-cell">
+                                        <div class="spec-text">${result.material_spec || '无规格信息'}</div>
+                                    </td>
+                                    <td class="match-result-cell">
+                                        <div class="match-content">
+                                            <div class="match-text">${result.matched_material || '未找到匹配'}</div>
+                                            <div class="confidence-row">
+                                                <span class="confidence-badge confidence-${this.getConfidenceClass(result.match_confidence)}">
+                                                    ${result.match_confidence || 0}%
+                                                </span>
+                                                <div class="action-buttons">
+                                                    <input type="checkbox" class="form-check-input me-2" ${result.match_confidence >= 70 ? 'checked' : ''}>
+                                                    <small class="text-success">✓</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="description-cell">
+                                        <div class="description-text">${result.material_description || result.material_spec || '无描述'}</div>
+                                    </td>
+                                    <td class="code-cell">
+                                        <div class="code-text">${result.material_code || result.match_code || '未编码'}</div>
+                                    </td>
+                                    <td class="classification-cell">
+                                        <div class="classification-content">
+                                            <div class="classification-text">${result.classification || '未分类'}</div>
+                                            <div class="confidence-row">
+                                                <span class="confidence-badge confidence-${this.getConfidenceClass(result.classification_confidence)}">
+                                                    ${result.classification_confidence || 0}%
+                                                </span>
+                                                <div class="action-buttons">
+                                                    <input type="checkbox" class="form-check-input me-2" ${result.classification_confidence >= 70 ? 'checked' : ''}>
+                                                    <small class="text-success">✓</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页导航栏 -->
+            ${this.renderPagination()}
+        `;
+    }
+    
+    renderPagination() {
+        if (this.totalPages <= 1) return '';
+        
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        let paginationHtml = `
+            <nav aria-label="分页导航" class="mt-3">
+                <ul class="pagination justify-content-center">
+                    <!-- 首页 -->
+                    <li class="page-item ${this.currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="workflowManager.goToPage(1); return false;">
+                            <i class="fas fa-angle-double-left"></i> 首页
+                        </a>
+                    </li>
+                    
+                    <!-- 上一页 -->
+                    <li class="page-item ${this.currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="workflowManager.goToPage(${this.currentPage - 1}); return false;">
+                            <i class="fas fa-angle-left"></i> 上一页
+                        </a>
+                    </li>
+        `;
+        
+        // 页码按钮
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHtml += `
+                <li class="page-item ${i === this.currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="workflowManager.goToPage(${i}); return false;">${i}</a>
+                </li>
+            `;
+        }
+        
+        paginationHtml += `
+                    <!-- 下一页 -->
+                    <li class="page-item ${this.currentPage === this.totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="workflowManager.goToPage(${this.currentPage + 1}); return false;">
+                            下一页 <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    
+                    <!-- 末页 -->
+                    <li class="page-item ${this.currentPage === this.totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="workflowManager.goToPage(${this.totalPages}); return false;">
+                            末页 <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        `;
+        
+        return paginationHtml;
+    }
+    
+    // 跳转到指定页面
+    goToPage(page) {
+        if (page < 1 || page > this.totalPages) return;
+        this.currentPage = page;
+        this.renderPaginatedTable();
+        
+        // 滚动到表格顶部
+        document.getElementById('resultsTable').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
+    
+    // 改变每页显示数量
+    changePageSize(newPageSize) {
+        this.pageSize = parseInt(newPageSize);
+        this.currentPage = 1; // 重置到第一页
+        this.totalPages = Math.ceil(this.totalResults / this.pageSize);
+        this.renderPaginatedTable();
+    }
+    
+    getConfidenceClass(confidence) {
+        if (confidence >= 80) return 'high';
+        if (confidence >= 60) return 'medium';
+        return 'low';
+    }
+    
+    toggleCheck(index, type) {
+        const button = document.getElementById(`${type}Check${index}`);
+        button.classList.toggle('checked');
+        
+        if (button.classList.contains('checked')) {
+            button.textContent = '✓';
+            button.style.background = '#155724';
+        } else {
+            button.textContent = '打勾';
+            button.style.background = '#27ae60';
+        }
+        
+        // 更新结果状态
+        if (!this.matchingResults[index].confirmations) {
+            this.matchingResults[index].confirmations = {};
+        }
+        this.matchingResults[index].confirmations[type] = button.classList.contains('checked');
+    }
+    
+    async saveResults() {
+        try {
+            const response = await fetch('/api/save_workflow_results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    results: this.matchingResults,
+                    template: this.selectedTemplate
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('结果保存成功！');
+                // 可以跳转到结果页面或重置流程
+            } else {
+                alert('保存失败：' + result.error);
+            }
+            
+        } catch (error) {
+            console.error('保存错误:', error);
+            alert('保存过程出错，请重试');
+        }
+    }
+}
+
+// 步骤导航函数
+function nextStep(stepNumber) {
+    // 更新步骤状态
+    const currentStepElement = document.getElementById(`step${workflowManager.currentStep}`);
+    currentStepElement.classList.remove('active');
+    currentStepElement.classList.add('completed');
+    
+    const nextStepElement = document.getElementById(`step${stepNumber}`);
+    nextStepElement.classList.add('active');
+    
+    // 切换面板
+    document.getElementById(`panel${workflowManager.currentStep}`).classList.remove('active');
+    document.getElementById(`panel${stepNumber}`).classList.add('active');
+    
+    workflowManager.currentStep = stepNumber;
+    
+    // 特殊处理
+    // 进入第三步时不自动开始匹配，等待用户点击“开始匹配”按钮
+}
+
+// 用户点击“开始匹配”按钮后，才真正发起匹配和进度条
+async function startMatchingAndProgress() {
+    // 检查workflowManager是否已初始化
+    if (!workflowManager) {
+        alert('系统尚未初始化完成，请稍后重试');
+        console.error('workflowManager未初始化');
+        return;
+    }
+    
+    // 检查上传数据和选择的模板
+    if (!workflowManager.uploadedData || !workflowManager.selectedTemplate) {
+        alert('请先完成数据上传和模板选择');
+        console.error('数据或模板未准备好:', {
+            uploadedData: workflowManager.uploadedData ? workflowManager.uploadedData.length : 'null',
+            selectedTemplate: workflowManager.selectedTemplate
+        });
+        return;
+    }
+    
+    console.log('开始匹配流程:', {
+        数据量: workflowManager.uploadedData.length,
+        模板: workflowManager.selectedTemplate
+    });
+    
+    // 禁用按钮，防止重复点击
+    const btn = document.getElementById('startMatchingBtn');
+    if (btn) btn.disabled = true;
+    // 显示loading
+    const status = document.getElementById('matchingStatusContent');
+    if (status) {
+        status.innerHTML = '<div class="spinner-border text-primary mb-3" role="status"></div><p>准备开始智能匹配...</p>';
+    }
+    
+    // 启动进度条动画，并在后台启动匹配
+    simulateProgress();
+    
+    // 延迟200ms后启动匹配请求，给进度条一点时间显示
+    setTimeout(() => {
+        if (workflowManager) {
+            workflowManager.startMatching();
+        } else {
+            console.error('workflowManager在延迟后仍未初始化');
+            alert('系统初始化失败，请刷新页面重试');
+        }
+    }, 200);
+}
+
+function previousStep(stepNumber) {
+    // 更新步骤状态
+    const currentStepElement = document.getElementById(`step${workflowManager.currentStep}`);
+    currentStepElement.classList.remove('active');
+    
+    const prevStepElement = document.getElementById(`step${stepNumber}`);
+    prevStepElement.classList.remove('completed');
+    prevStepElement.classList.add('active');
+    
+    // 切换面板
+    document.getElementById(`panel${workflowManager.currentStep}`).classList.remove('active');
+    document.getElementById(`panel${stepNumber}`).classList.add('active');
+    
+    workflowManager.currentStep = stepNumber;
+}
+
+function simulateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const status = document.getElementById('matchingStatus');
+    
+    let progress = 0;
+    const steps = [
+        { progress: 20, message: '分析物料数据结构...' },
+        { progress: 40, message: '加载分类模板...' },
+        { progress: 60, message: '执行智能分类...' },
+        { progress: 80, message: '匹配物料编码...' },
+        { progress: 100, message: '生成匹配结果...' }
+    ];
+    
+    let currentStep = 0;
+    
+    const interval = setInterval(() => {
+        if (currentStep < steps.length) {
+            const step = steps[currentStep];
+            progress = step.progress;
+            
+            progressBar.style.width = progress + '%';
+            progressText.textContent = progress + '%';
+            
+            status.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <p>${step.message}</p>
+                </div>
+            `;
+            
+            currentStep++;
+        } else {
+            clearInterval(interval);
+            // 等待匹配结果完成，然后显示最终状态
+            checkAndDisplayResults();
+        }
+    }, 800);
+}
+
+function checkAndDisplayResults() {
+    const status = document.getElementById('matchingStatus');
+    
+    // 监听匹配完成事件
+    const handleMatchingComplete = (event) => {
+        const { results, count, error } = event.detail;
+        
+        if (error) {
+            status.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                    <h5 class="text-danger">匹配失败！</h5>
+                    <p>${error}</p>
+                </div>
+            `;
+        } else {
+            status.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h5 class="text-success">匹配完成！</h5>
+                    <p>已成功处理 ${count} 条物料数据</p>
+                </div>
+            `;
+            document.getElementById('nextStep3').disabled = false;
+        }
+        
+        // 移除事件监听器
+        window.removeEventListener('matchingComplete', handleMatchingComplete);
+    };
+    
+    // 添加事件监听器
+    window.addEventListener('matchingComplete', handleMatchingComplete);
+    
+    // 设置超时保护（60分钟超时时间，适合大数据量处理）
+    const dataCount = workflowManager.uploadedData ? workflowManager.uploadedData.length : 0;
+    const timeoutSeconds = 3600; // 固定60分钟 (3600秒)
+    
+    console.log(`设置匹配超时时间: ${timeoutSeconds}秒 (60分钟) (数据量: ${dataCount}条)`);
+    
+    setTimeout(() => {
+        window.removeEventListener('matchingComplete', handleMatchingComplete);
+        const resultCount = workflowManager.matchingResults ? workflowManager.matchingResults.length : 0;
+        if (resultCount === 0) {
+            status.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                    <h5 class="text-warning">匹配超时</h5>
+                    <p>数据量较大 (${dataCount}条)，处理时间超过60分钟</p>
+                    <p>请检查网络连接或联系技术支持</p>
+                </div>
+            `;
+        }
+    }, timeoutSeconds * 1000);
+}
+
+// 初始化
+let workflowManager;
+document.addEventListener('DOMContentLoaded', function() {
+    workflowManager = new WorkflowManager();
+});
+</script>
+{% endblock %}

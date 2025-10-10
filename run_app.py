@@ -31,6 +31,6 @@ if __name__ == '__main__':
     app.run(
         host='0.0.0.0',    # 允许外部访问
         port=5001,         # 使用5001端口避免冲突
-        debug=True,        # 开发模式
+        debug=False,       # 禁用调试模式避免频繁重启
         threaded=True      # 多线程支持
     )

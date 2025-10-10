@@ -1,0 +1,1264 @@
+{% extends "base.html" %}
+
+{% block title %}分类管理 - MMP智能物料管理系统{% endblock %}
+
+{% block head %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #17a2b8;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --text-muted: #6c757d;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --border-radius: 0.375rem;
+    }
+    
+    .category-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+    }
+    
+    .category-header h2 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 2rem;
+    }
+    
+    .category-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .stat-highlight {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        backdrop-filter: blur(10px);
+    }
+    
+    .stat-highlight i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .category-container {
+        display: flex;
+        gap: 1.5rem;
+        margin: 0;
+    }
+    
+    .sidebar {
+        width: 320px;
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        height: fit-content;
+        position: sticky;
+        top: 1rem;
+    }
+    
+    .main-content {
+        flex: 1;
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+    
+    .search-section {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-box {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: var(--light-bg);
+    }
+    
+    .search-box:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+        background: white;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+    
+    .filter-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-section h6 {
+        margin-bottom: 0.75rem;
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .level-filters {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    .level-btn {
+        padding: 0.5rem 1rem;
+        background: var(--light-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+    }
+    
+    .level-btn:hover {
+        background: var(--secondary-color);
+        color: white;
+        border-color: var(--secondary-color);
+        transform: translateY(-1px);
+    }
+    
+    .level-btn.active {
+        background: var(--secondary-color);
+        color: white;
+        border-color: var(--secondary-color);
+        box-shadow: var(--shadow-sm);
+    }
+    
+        .statistics-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--secondary-color);
+    }
+    
+    .level-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        gap: 0.5rem;
+    }
+    
+    .level-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 24px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+        min-width: 32px;
+    }
+    
+    .level-1 { background: var(--primary-color); }
+    .level-2 { background: var(--secondary-color); }
+    .level-3 { background: var(--info-color); }
+    
+    .compatibility-details {
+        margin-top: 1rem;
+    }
+    
+    .compatibility-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .compatibility-rate {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--success-color);
+        min-width: 80px;
+    }
+    
+    .industry-coverage {
+        margin-top: 1rem;
+    }
+    
+    .coverage-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .coverage-label {
+        min-width: 80px;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+    
+    .coverage-bar {
+        flex: 1;
+        height: 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .coverage-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--success-color), var(--secondary-color));
+        transition: width 0.3s ease;
+    }
+    
+    .coverage-percent {
+        min-width: 40px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--success-color);
+        text-align: right;
+    }
+    
+    .statistics-card h6 {
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .stat-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+    
+    .stat-value {
+        font-weight: 600;
+        color: var(--primary-color);
+        background: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+    }
+    
+    .tree-container {
+        max-height: 70vh;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        background: white;
+    }
+    
+    .tree-container::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .tree-container::-webkit-scrollbar-track {
+        background: var(--light-bg);
+        border-radius: 4px;
+    }
+    
+    .tree-container::-webkit-scrollbar-thumb {
+        background: var(--text-muted);
+        border-radius: 4px;
+    }
+    
+    .tree-container::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary-color);
+    }
+    
+    .tree-node {
+        margin-left: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .tree-node.level-1 {
+        margin-left: 0;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .tree-node.level-2 {
+        margin-left: 1.5rem;
+        color: var(--success-color);
+        font-weight: 500;
+    }
+    
+    .tree-node.level-3 {
+        margin-left: 3rem;
+        color: var(--info-color);
+    }
+    
+    .node-content {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 0.125rem 0;
+    }
+    
+    .node-content:hover {
+        background: linear-gradient(145deg, var(--light-bg) 0%, #e9ecef 100%);
+        transform: translateX(4px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .node-content.selected {
+        background: linear-gradient(145deg, var(--secondary-color) 0%, #2980b9 100%);
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .node-toggle {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        background: var(--light-bg);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+    
+    .node-toggle:hover {
+        background: var(--secondary-color);
+        color: white;
+    }
+    
+    .node-code {
+        font-family: 'Monaco', 'Consolas', monospace;
+        background: rgba(52, 152, 219, 0.1);
+        color: var(--secondary-color);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--border-radius);
+        margin-right: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    
+    .node-content.selected .node-code {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .node-name {
+        flex: 1;
+        font-weight: 500;
+    }
+    
+    .node-badge {
+        background: var(--text-muted);
+        color: white;
+        padding: 0.125rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .leaf-badge {
+        background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+    }
+    
+    .level-badge {
+        background: linear-gradient(135deg, var(--info-color) 0%, #138496 100%);
+    }
+    
+    .search-results {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    
+    .search-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: var(--border-radius);
+        margin-bottom: 0.5rem;
+        background: white;
+        border: 1px solid transparent;
+    }
+    
+    .search-item:hover {
+        background: linear-gradient(145deg, var(--light-bg) 0%, #e9ecef 100%);
+        border-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .search-item:last-child {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .search-item-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+    
+    .search-item-description {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 20px;
+        color: #6c757d;
+    }
+    
+    .error {
+        color: #dc3545;
+        background: #f8d7da;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+    }
+    
+    .breadcrumb-nav {
+        background: linear-gradient(145deg, var(--light-bg) 0%, #e9ecef 100%);
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .breadcrumb-nav i {
+        color: var(--secondary-color);
+        margin-right: 0.5rem;
+    }
+    
+    .category-detail {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .category-detail h5 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-weight: 600;
+        border-bottom: 2px solid var(--secondary-color);
+        padding-bottom: 0.5rem;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: var(--text-muted);
+        width: 140px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .detail-value {
+        flex: 1;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+    
+    .loading i {
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .error {
+        color: var(--danger-color);
+        background: rgba(231, 76, 60, 0.1);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin: 1rem 0;
+        border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+    
+    .success-message {
+        color: var(--success-color);
+        background: rgba(39, 174, 96, 0.1);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin: 1rem 0;
+        border: 1px solid rgba(39, 174, 96, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="category-header text-center">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <a href="/category-templates" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-arrow-left me-2"></i>返回模板列表
+                    </a>
+                    <a href="/template-selection" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-home me-2"></i>模板选择
+                    </a>
+                </div>
+                <div class="page-actions">
+                    <span class="badge bg-primary text-white" id="templateBadge">物料统一模板</span>
+                </div>
+            </div>
+            <h2>
+                <i class="fas fa-sitemap me-3"></i>
+                <span id="pageTitle">物料统一模板 - 分类详情</span>
+            </h2>
+            <p id="pageDescription">
+                适用于制造业全领域的通用分类体系，包含化工、机械、金属、建材等18个主要行业分类，支持3层级深度结构
+            </p>
+            <div class="row mt-3" id="templateStats">
+                <div class="col-md-3 text-center">
+                    <div class="stat-highlight">
+                        <i class="fas fa-list text-warning"></i>
+                        <strong class="d-block text-white fs-4">548</strong>
+                        <small class="text-light">总分类数</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-highlight">
+                        <i class="fas fa-layer-group text-info"></i>
+                        <strong class="d-block text-white fs-4">3</strong>
+                        <small class="text-light">层级深度</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-highlight">
+                        <i class="fas fa-industry text-success"></i>
+                        <strong class="d-block text-white fs-4">18</strong>
+                        <small class="text-light">一级分类</small>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="stat-highlight">
+                        <i class="fas fa-check-circle text-warning"></i>
+                        <strong class="d-block text-white fs-4">95%</strong>
+                        <small class="text-light">制造业适配度</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="category-container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <!-- 搜索区域 -->
+            <div class="search-section">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-box" id="searchInput" placeholder="搜索分类编码或名称...">
+            </div>
+            
+            <!-- 筛选区域 -->
+            <div class="filter-section">
+                <h6><i class="fas fa-filter me-2"></i>按层级筛选</h6>
+                <div class="level-filters">
+                    <button class="level-btn active" data-level="">
+                        <i class="fas fa-list me-1"></i>全部
+                    </button>
+                    <button class="level-btn" data-level="1">
+                        <i class="fas fa-layer-group me-1"></i>1级
+                    </button>
+                    <button class="level-btn" data-level="2">
+                        <i class="fas fa-indent me-1"></i>2级
+                    </button>
+                    <button class="level-btn" data-level="3">
+                        <i class="fas fa-leaf me-1"></i>3级
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 统计信息 -->
+            <div class="statistics-card">
+                <h6><i class="fas fa-chart-bar me-2"></i>统计信息</h6>
+                <div id="statisticsContent">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        加载中...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 层级结构说明 -->
+            <div class="info-card" id="levels" style="display: none;">
+                <h6><i class="fas fa-layer-group me-2"></i>层级结构说明</h6>
+                <div class="level-info">
+                    <div class="level-item">
+                        <span class="level-badge level-1">1级</span>
+                        <span>主要分类（如：化工、机械、金属等）</span>
+                    </div>
+                    <div class="level-item">
+                        <span class="level-badge level-2">2级</span>
+                        <span>细分分类（如：化工三剂、通用机械等）</span>
+                    </div>
+                    <div class="level-item">
+                        <span class="level-badge level-3">3级</span>
+                        <span>具体分类（如：防爆工具、轴承等）</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 制造业适配度信息 -->
+            <div class="info-card" id="compatibility" style="display: none;">
+                <h6><i class="fas fa-industry me-2"></i>制造业适配度</h6>
+                <div class="compatibility-details">
+                    <div class="compatibility-item">
+                        <span class="compatibility-rate">95%</span>
+                        <span>整体适配度</span>
+                    </div>
+                    <div class="industry-coverage">
+                        <div class="coverage-item">
+                            <span class="coverage-label">化工行业</span>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill" style="width: 100%;"></div>
+                            </div>
+                            <span class="coverage-percent">100%</span>
+                        </div>
+                        <div class="coverage-item">
+                            <span class="coverage-label">机械制造</span>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill" style="width: 98%;"></div>
+                            </div>
+                            <span class="coverage-percent">98%</span>
+                        </div>
+                        <div class="coverage-item">
+                            <span class="coverage-label">金属加工</span>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill" style="width: 95%;"></div>
+                            </div>
+                            <span class="coverage-percent">95%</span>
+                        </div>
+                        <div class="coverage-item">
+                            <span class="coverage-label">建筑材料</span>
+                            <div class="coverage-bar">
+                                <div class="coverage-fill" style="width: 92%;"></div>
+                            </div>
+                            <span class="coverage-percent">92%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 面包屑导航 -->
+            <div class="breadcrumb-nav" id="breadcrumbNav" style="display: none;">
+                <i class="fas fa-map-marker-alt"></i>
+                <span id="breadcrumbContent"></span>
+            </div>
+            
+            <!-- 分类树 -->
+            <div id="treeContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    正在加载分类数据...
+                </div>
+            </div>
+            
+            <!-- 搜索结果 -->
+            <div id="searchResults" style="display: none;">
+                <h5><i class="fas fa-search-plus me-2"></i>搜索结果</h5>
+                <div id="searchResultsContent"></div>
+            </div>
+            
+            <!-- 分类详情 -->
+            <div class="category-detail" id="categoryDetail" style="display: none;">
+                <h5><i class="fas fa-info-circle me-2"></i>分类详情</h5>
+                <div id="categoryDetailContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+class CategoryManager {
+    constructor() {
+        this.treeData = null;
+        this.currentFilter = '';
+        this.selectedCategory = null;
+        this.init();
+    }
+    
+    init() {
+        this.bindEvents();
+        this.loadStatistics();
+        this.loadCategoryTree();
+        this.handleUrlParameters();
+    }
+    
+    bindEvents() {
+        // 搜索事件
+        const searchInput = document.getElementById('searchInput');
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                this.handleSearch(e.target.value);
+            }, 300);
+        });
+        
+        // 层级过滤事件
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilter = e.target.dataset.level;
+                this.filterTree();
+            });
+        });
+    }
+    
+    async loadStatistics() {
+        try {
+            const response = await fetch('/api/categories/statistics');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderStatistics(data.statistics);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('加载统计信息失败:', error);
+            document.getElementById('statisticsContent').innerHTML = 
+                `<div class="error">加载失败: ${error.message}</div>`;
+        }
+    }
+    
+    renderStatistics(stats) {
+        const html = `
+            <div class="stat-item">
+                <span class="stat-label">
+                    <i class="fas fa-database me-1"></i>总分类数
+                </span>
+                <span class="stat-value">${stats.total}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">
+                    <i class="fas fa-layer-group me-1"></i>1级分类
+                </span>
+                <span class="stat-value">${stats.level_stats[1] || 0}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">
+                    <i class="fas fa-indent me-1"></i>2级分类
+                </span>
+                <span class="stat-value">${stats.level_stats[2] || 0}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">
+                    <i class="fas fa-leaf me-1"></i>3级分类
+                </span>
+                <span class="stat-value">${stats.level_stats[3] || 0}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">
+                    <i class="fas fa-check-circle me-1"></i>叶子节点
+                </span>
+                <span class="stat-value">${stats.leaf_count}</span>
+            </div>
+        `;
+        document.getElementById('statisticsContent').innerHTML = html;
+    }
+    
+    async loadCategoryTree() {
+        try {
+            const response = await fetch('/api/categories/tree');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.treeData = data.tree;
+                this.renderTree();
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('加载分类树失败:', error);
+            document.getElementById('treeContainer').innerHTML = 
+                `<div class="error">加载失败: ${error.message}</div>`;
+        }
+    }
+    
+    renderTree() {
+        if (!this.treeData) return;
+        
+        const container = document.getElementById('treeContainer');
+        container.innerHTML = '<div class="tree-container">' + 
+            this.renderTreeNodes(this.treeData) + 
+        '</div>';
+        
+        // 绑定节点点击事件
+        container.querySelectorAll('.node-content').forEach(node => {
+            node.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const code = node.dataset.code;
+                this.selectCategory(code);
+            });
+        });
+        
+        // 绑定展开/折叠事件
+        container.querySelectorAll('.node-toggle').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleNode(toggle.closest('.tree-node'));
+            });
+        });
+    }
+    
+    renderTreeNodes(nodes, level = 1) {
+        return nodes.map(node => {
+            const hasChildren = node.children && node.children.length > 0;
+            const isVisible = this.shouldShowNode(node);
+            
+            if (!isVisible) return '';
+            
+            const levelIcon = level === 1 ? 'fas fa-folder' : 
+                             level === 2 ? 'fas fa-folder-open' : 
+                             'fas fa-file-alt';
+            
+            return `
+                <div class="tree-node level-${level}" data-code="${node.code}">
+                    <div class="node-content" data-code="${node.code}">
+                        <span class="node-toggle">
+                            ${hasChildren ? '<i class="fas fa-chevron-down"></i>' : '<i class="fas fa-circle" style="font-size: 0.5rem;"></i>'}
+                        </span>
+                        <span class="node-code">${node.code}</span>
+                        <i class="${levelIcon} me-2"></i>
+                        <span class="node-name">${node.name}</span>
+                        ${node.is_leaf ? '<span class="node-badge leaf-badge"><i class="fas fa-leaf me-1"></i>叶子</span>' : ''}
+                        ${!node.is_leaf ? '<span class="node-badge level-badge">L' + level + '</span>' : ''}
+                    </div>
+                    <div class="node-children" style="display: block;">
+                        ${hasChildren ? this.renderTreeNodes(node.children, level + 1) : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    shouldShowNode(node) {
+        if (!this.currentFilter) return true;
+        return node.level.toString() === this.currentFilter;
+    }
+    
+    toggleNode(nodeElement) {
+        const childrenContainer = nodeElement.querySelector('.node-children');
+        const toggle = nodeElement.querySelector('.node-toggle i');
+        
+        if (childrenContainer && toggle) {
+            const isVisible = childrenContainer.style.display !== 'none';
+            childrenContainer.style.display = isVisible ? 'none' : 'block';
+            
+            if (toggle.classList.contains('fa-chevron-down')) {
+                toggle.className = isVisible ? 'fas fa-chevron-right' : 'fas fa-chevron-down';
+            }
+        }
+    }
+    
+    selectNode(nodeElement) {
+        // 移除之前选中的节点
+        document.querySelectorAll('.node-content.selected').forEach(node => {
+            node.classList.remove('selected');
+        });
+        
+        // 选中当前节点
+        if (nodeElement) {
+            nodeElement.classList.add('selected');
+        }
+    }
+    
+    filterTree() {
+        this.renderTree();
+    }
+    
+    async handleSearch(keyword) {
+        if (!keyword.trim()) {
+            this.showTree();
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/categories/search?keyword=${encodeURIComponent(keyword)}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showSearchResults(data.results);
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('搜索失败:', error);
+        }
+    }
+    
+    showTree() {
+        document.getElementById('treeContainer').style.display = 'block';
+        document.getElementById('searchResults').style.display = 'none';
+    }
+    
+    showSearchResults(results) {
+        document.getElementById('treeContainer').style.display = 'none';
+        document.getElementById('searchResults').style.display = 'block';
+        
+        const html = results.map(item => {
+            const levelIcon = item.level === 1 ? 'fas fa-folder' : 
+                             item.level === 2 ? 'fas fa-folder-open' : 
+                             'fas fa-file-alt';
+            
+            return `
+                <div class="search-item" data-code="${item.code}" onclick="categoryManager.selectCategory('${item.code}')">
+                    <div class="search-item-header">
+                        <span class="node-code">${item.code}</span>
+                        <i class="${levelIcon} me-2"></i>
+                        <span class="node-name">${item.name}</span>
+                        <span class="node-badge level-badge">L${item.level}</span>
+                        ${item.is_leaf ? '<span class="node-badge leaf-badge"><i class="fas fa-leaf me-1"></i>叶子</span>' : ''}
+                    </div>
+                    ${item.description ? `<div class="search-item-description">${item.description}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('searchResultsContent').innerHTML = 
+            html || '<div class="text-muted text-center p-4"><i class="fas fa-search me-2"></i>未找到匹配的分类</div>';
+    }
+    
+    selectCategory(code) {
+        // 找到分类数据
+        const category = this.findCategoryByCode(code);
+        if (category) {
+            this.selectedCategory = category;
+            this.showCategoryDetail(category);
+            this.updateBreadcrumb(category);
+            
+            // 选中对应的节点
+            const nodeElement = document.querySelector(`[data-code="${code}"] .node-content`);
+            if (nodeElement) {
+                this.selectNode(nodeElement);
+            }
+        }
+    }
+    
+    findCategoryByCode(code, nodes = null) {
+        if (!nodes) nodes = this.treeData;
+        
+        for (let node of nodes) {
+            if (node.code === code) {
+                return node;
+            }
+            if (node.children) {
+                const found = this.findCategoryByCode(code, node.children);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+    
+    showCategoryDetail(category) {
+        const html = `
+            <div class="detail-row">
+                <span class="detail-label">分类编码:</span>
+                <span class="detail-value">${category.code}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">分类名称:</span>
+                <span class="detail-value">${category.name}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">层级:</span>
+                <span class="detail-value">第${category.level}级</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">物料模板:</span>
+                <span class="detail-value">${category.template || '未设置'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">是否叶子节点:</span>
+                <span class="detail-value">${category.is_leaf ? '是' : '否'}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">说明:</span>
+                <span class="detail-value">${category.description || '无'}</span>
+            </div>
+        `;
+        
+        document.getElementById('categoryDetailContent').innerHTML = html;
+        document.getElementById('categoryDetail').style.display = 'block';
+    }
+    
+    updateBreadcrumb(category) {
+        // 这里可以添加面包屑导航逻辑
+        document.getElementById('breadcrumbNav').style.display = 'block';
+        document.getElementById('breadcrumbContent').textContent = 
+            `当前位置: ${category.code} - ${category.name}`;
+    }
+    
+    handleUrlParameters() {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        const hash = url.hash;
+        
+        console.log('处理URL参数:', { params: Object.fromEntries(params), hash });
+        
+        // 处理模板参数 ?template=xxx
+        const templateId = params.get('template');
+        if (templateId) {
+            console.log('显示模板信息:', templateId);
+            this.displayTemplateInfo(templateId);
+        }
+        
+        // 处理层级筛选参数 ?level=1
+        const level = params.get('level');
+        if (level) {
+            console.log('应用层级筛选:', level);
+            // 点击对应的层级按钮
+            setTimeout(() => {
+                const levelBtn = document.querySelector(`.level-btn[data-level="${level}"]`);
+                if (levelBtn) {
+                    levelBtn.click();
+                    // 高亮显示选中的按钮
+                    levelBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 1000);
+        }
+        
+        // 处理锚点 #levels, #compatibility
+        if (hash) {
+            console.log('处理锚点:', hash);
+            setTimeout(() => {
+                if (hash === '#levels') {
+                    this.showLevelInfo();
+                } else if (hash === '#compatibility') {
+                    this.showCompatibilityInfo();
+                } else {
+                    // 尝试滚动到对应元素
+                    const element = document.querySelector(hash);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            }, 800); // 等待页面内容加载完成
+        }
+    }
+    
+    showLevelInfo() {
+        const levelCard = document.getElementById('levels');
+        if (levelCard) {
+            levelCard.style.display = 'block';
+            levelCard.scrollIntoView({ behavior: 'smooth' });
+            // 添加高亮效果
+            levelCard.style.background = '#f8f9ff';
+            setTimeout(() => {
+                levelCard.style.background = 'white';
+            }, 3000);
+        }
+    }
+    
+    showCompatibilityInfo() {
+        const compatibilityCard = document.getElementById('compatibility');
+        if (compatibilityCard) {
+            compatibilityCard.style.display = 'block';
+            compatibilityCard.scrollIntoView({ behavior: 'smooth' });
+            // 添加高亮效果
+            compatibilityCard.style.background = '#f8f9ff';
+            setTimeout(() => {
+                compatibilityCard.style.background = 'white';
+            }, 3000);
+        }
+    }
+    
+    displayTemplateInfo(templateId) {
+        // 模板信息数据
+        const templateData = {
+            'universal-manufacturing': {
+                name: '物料统一模板',
+                description: '适用于制造业全领域的通用分类体系，包含化工、机械、金属、建材等18个主要行业分类，支持3层级深度结构',
+                badgeClass: 'bg-primary',
+                stats: { categories: 548, levels: 3, topCategories: 18, compatibility: '95%' }
+            },
+            'chemical-specialized': {
+                name: '化工行业专用模板',
+                description: '专门针对化工行业设计的分类模板，包含化学原料、试剂、设备等专业分类，适合化工企业使用',
+                badgeClass: 'bg-purple',
+                stats: { categories: 312, levels: 4, topCategories: 8, compatibility: '98%' }
+            },
+            'mechanical-engineering': {
+                name: '机械工程模板',
+                description: '专为机械制造行业打造，涵盖通用机械、专用设备、零配件等完整分类体系',
+                badgeClass: 'bg-success',
+                stats: { categories: 425, levels: 3, topCategories: 12, compatibility: '92%' }
+            },
+            'construction-materials': {
+                name: '建材行业模板',
+                description: '建筑材料行业专用分类模板，包含各类建材、五金、装饰材料等分类',
+                badgeClass: 'bg-warning',
+                stats: { categories: 267, levels: 3, topCategories: 9, compatibility: '89%' }
+            },
+            'custom-enterprise': {
+                name: '企业定制模板',
+                description: '根据特定企业需求定制的分类模板，提供灵活的分类结构和业务逻辑',
+                badgeClass: 'bg-info',
+                stats: { categories: 189, levels: 4, topCategories: 6, compatibility: '100%' }
+            }
+        };
+        
+        const template = templateData[templateId];
+        if (template) {
+            // 更新页面标题区域的徽章
+            const templateBadge = document.getElementById('templateBadge');
+            if (templateBadge) {
+                templateBadge.className = `badge ${template.badgeClass} text-white`;
+                templateBadge.textContent = template.name;
+            }
+            
+            // 更新页面标题
+            const pageTitle = document.getElementById('pageTitle');
+            if (pageTitle) {
+                pageTitle.textContent = `${template.name} - 分类详情`;
+            }
+            
+            // 更新页面描述
+            const pageDescription = document.getElementById('pageDescription');
+            if (pageDescription) {
+                pageDescription.textContent = template.description;
+            }
+            
+            // 更新统计信息
+            const templateStats = document.getElementById('templateStats');
+            if (templateStats && template.stats) {
+                const statsHtml = `
+                    <div class="col-md-3 text-center">
+                        <div class="stat-highlight">
+                            <i class="fas fa-list text-warning"></i>
+                            <strong class="d-block text-white fs-4">${template.stats.categories}</strong>
+                            <small class="text-light">总分类数</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="stat-highlight">
+                            <i class="fas fa-layer-group text-info"></i>
+                            <strong class="d-block text-white fs-4">${template.stats.levels}</strong>
+                            <small class="text-light">层级深度</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="stat-highlight">
+                            <i class="fas fa-industry text-success"></i>
+                            <strong class="d-block text-white fs-4">${template.stats.topCategories}</strong>
+                            <small class="text-light">一级分类</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="stat-highlight">
+                            <i class="fas fa-check-circle text-warning"></i>
+                            <strong class="d-block text-white fs-4">${template.stats.compatibility}</strong>
+                            <small class="text-light">行业适配度</small>
+                        </div>
+                    </div>
+                `;
+                templateStats.innerHTML = statsHtml;
+            }
+            
+            // 更新页面标题
+            document.title = `${template.name} - 分类管理 - MMP智能物料管理系统`;
+            
+            console.log('已加载模板:', template.name);
+        }
+    }
+}
+
+// 初始化
+let categoryManager;
+document.addEventListener('DOMContentLoaded', function() {
+    categoryManager = new CategoryManager();
+});
+</script>
+{% endblock %}

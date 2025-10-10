@@ -1,0 +1,20 @@
+2025-09-25 16:45:48,529 - INFO - 数据库表结构初始化完成
+2025-09-25 16:45:48,530 - INFO - 数据库会话管理器初始化完成: /Users/mason/Desktop/code /mmp/sessions.db
+2025-09-25 16:45:48,531 - INFO - 业务数据表初始化完成
+==================================================
+  MMP物料主数据管理智能应用
+==================================================
+启动信息:
+- Python版本: 3.8.10 (v3.8.10:3d8993a744, May  3 2021, 08:55:58) 
+[Clang 6.0 (clang-600.0.57)]
+- 工作目录: /Users/mason/Desktop/code /mmp
+- Flask版本: flask.app
+- 服务地址: http://localhost:5001
+==================================================
+ * Serving Flask app 'app.web_app'
+ * Debug mode: off
+2025-09-25 16:45:48,557 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://26.26.26.1:5001
+2025-09-25 16:45:48,557 - INFO - [33mPress CTRL+C to quit[0m

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物料匹配结果表格演示</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --border-color: #dee2e6;
+            --border-radius: 8px;
+            --text-color: #333;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), #6610f2);
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .results-comparison-table {
+            margin-top: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .results-comparison-table thead {
+            background: var(--dark-bg);
+            color: white;
+        }
+
+        .results-comparison-table th {
+            padding: 1rem 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #495057;
+            vertical-align: middle;
+        }
+
+        .results-comparison-table td {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            vertical-align: middle;
+            position: relative;
+        }
+
+        .result-table-row:hover {
+            background-color: var(--light-bg);
+        }
+
+        .material-name-cell {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--info-color);
+        }
+
+        .material-name-text {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .spec-cell {
+            background-color: #fff3cd;
+            border-left: 3px solid var(--warning-color);
+        }
+
+        .spec-text {
+            font-size: 0.9rem;
+            color: #856404;
+            word-break: break-word;
+        }
+
+        .match-result-cell {
+            background-color: #e7f3ff;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .match-content,
+        .classification-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .match-text,
+        .classification-text {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .confidence-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .confidence-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 50px;
+        }
+
+        .confidence-high {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .confidence-medium {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .confidence-low {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .action-buttons .form-check-input {
+            margin: 0;
+        }
+
+        .description-cell {
+            background-color: #f0f8f0;
+            border-left: 3px solid #28a745;
+            max-width: 200px;
+        }
+
+        .description-text {
+            font-size: 0.85rem;
+            color: #495057;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-clamp: 2;
+        }
+
+        .code-cell {
+            background-color: #f8f9fa;
+            border-left: 3px solid #6c757d;
+            text-align: center;
+        }
+
+        .code-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .classification-cell {
+            background-color: #d4edda;
+            border-left: 3px solid var(--success-color);
+        }
+
+        .classification-text {
+            color: #155724;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .results-comparison-table {
+                font-size: 0.8rem;
+            }
+            
+            .results-comparison-table th,
+            .results-comparison-table td {
+                padding: 0.5rem 0.3rem;
+            }
+            
+            .confidence-badge {
+                font-size: 0.7rem;
+                padding: 0.1rem 0.3rem;
+            }
+        }
+
+        .demo-note {
+            background: #e3f2fd;
+            border-left: 4px solid var(--info-color);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-table me-3"></i>第四步：确认匹配结果</h1>
+            <p class="mb-0">智能物料分类匹配结果表格展示</p>
+        </div>
+
+        <div class="demo-note">
+            <h5><i class="fas fa-info-circle me-2"></i>表格说明</h5>
+            <p class="mb-0">该表格展示了智能物料分类系统的匹配结果，包含物料信息、匹配结果、置信度评分及用户确认选项。</p>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover results-comparison-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 15%">物料名称</th>
+                        <th style="width: 20%">规格</th>
+                        <th style="width: 25%">对照结果</th>
+                        <th style="width: 15%">物料长描述</th>
+                        <th style="width: 10%">物料编码</th>
+                        <th style="width: 15%">分类结果</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 示例行1：疏水器 - 高置信度匹配 -->
+                    <tr class="result-table-row">
+                        <td class="material-name-cell">
+                            <div class="material-name-text">疏水器</div>
+                        </td>
+                        <td class="spec-cell">
+                            <div class="spec-text">DN25 CL150，材质：CS，介质温度:100-180℃，介质压力：0.4-1.0MPa</div>
+                        </td>
+                        <td class="match-result-cell">
+                            <div class="match-content">
+                                <div class="match-text">疏水阀</div>
+                                <div class="confidence-row">
+                                    <span class="confidence-badge confidence-high">85%</span>
+                                    <div class="action-buttons">
+                                        <input type="checkbox" class="form-check-input me-2" checked>
+                                        <small class="text-success">✓</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="description-cell">
+                            <div class="description-text">DN25压力等级CL150碳钢疏水器，适用于高温高压蒸汽系统</div>
+                        </td>
+                        <td class="code-cell">
+                            <div class="code-text">SH001</div>
+                        </td>
+                        <td class="classification-cell">
+                            <div class="classification-content">
+                                <div class="classification-text">疏水阀</div>
+                                <div class="confidence-row">
+                                    <span class="confidence-badge confidence-high">88%</span>
+                                    <div class="action-buttons">
+                                        <input type="checkbox" class="form-check-input me-2" checked>
+                                        <small class="text-success">✓</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- 示例行2：螺塞 - 中等置信度匹配 -->
+                    <tr class="result-table-row">
+                        <td class="material-name-cell">
+                            <div class="material-name-text">螺塞</div>
+                        </td>
+                        <td class="spec-cell">
+                            <div class="spec-text">M27*2</div>
+                        </td>
+                        <td class="match-result-cell">
+                            <div class="match-content">
+                                <div class="match-text">紧固件</div>
+                                <div class="confidence-row">
+                                    <span class="confidence-badge confidence-medium">74%</span>
+                                    <div class="action-buttons">
+                                        <input type="checkbox" class="form-check-input me-2" checked>
+                                        <small class="text-success">✓</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="description-cell">
+                            <div class="description-text">M27*2螺纹规格螺塞，用于封堵螺纹孔</div>
+                        </td>
+                        <td class="code-cell">
+                            <div class="code-text">LS027</div>
+                        </td>
+                        <td class="classification-cell">
+                            <div class="classification-content">
+                                <div class="classification-text">紧固件</div>
+                                <div class="confidence-row">
+                                    <span class="confidence-badge confidence-medium">74%</span>
+                                    <div class="action-buttons">
+                                        <input type="checkbox" class="form-check-input me-2" checked>
+                                        <small class="text-success">✓</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- 示例行3：未知物料 - 低置信度 -->
+                    <tr class="result-table-row">
+                        <td class="material-name-cell">
+                            <div class="material-name-text">特殊阀门</div>
+                        </td>
+                        <td class="spec-cell">
+                            <div class="spec-text">非标定制</div>
+                        </td>
+                        <td class="match-result-cell">
+                            <div class="match-content">
+                                <div class="match-text">阀门类</div>
+                                <div class="confidence-row">
+                                    <span class="confidence-badge confidence-low">35%</span>
+                                    <div class="action-buttons">
+                                        <input type="checkbox" class="form-check-input me-2">
+                                        <small class="text-muted">✗</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="description-cell">
+                            <div class="description-text">非标定制特殊阀门，需要人工确认分类</div>
+                        </td>
+                        <td class="code-cell">
+                            <div class="code-text">-</div>
+                        </td>
+                        <td class="classification-cell">
+                            <div class="classification-content">
+                                <div class="classification-text">未分类</div>
+                                <div class="confidence-row">
+                                    <span class="confidence-badge confidence-low">0%</span>
+                                    <div class="action-buttons">
+                                        <input type="checkbox" class="form-check-input me-2">
+                                        <small class="text-muted">✗</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- 示例行4：物料长描述 - 成功匹配 -->
+                    <tr class="result-table-row">
+                        <td class="material-name-cell">
+                            <div class="material-name-text">物料长描述</div>
+                        </td>
+                        <td class="spec-cell">
+                            <div class="spec-text">304不锈钢，DN50，PN16</div>
+                        </td>
+                        <td class="match-result-cell">
+                            <div class="match-content">
+                                <div class="match-text">不锈钢管件</div>
+                                <div class="confidence-row">
+                                    <span class="confidence-badge confidence-high">92%</span>
+                                    <div class="action-buttons">
+                                        <input type="checkbox" class="form-check-input me-2" checked>
+                                        <small class="text-success">✓</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="description-cell">
+                            <div class="description-text">304不锈钢材质，公称直径DN50，公称压力PN16的管道配件</div>
+                        </td>
+                        <td class="code-cell">
+                            <div class="code-text">SG050</div>
+                        </td>
+                        <td class="classification-cell">
+                            <div class="classification-content">
+                                <div class="classification-text">管道配件</div>
+                                <div class="confidence-row">
+                                    <span class="confidence-badge confidence-high">89%</span>
+                                    <div class="action-buttons">
+                                        <input type="checkbox" class="form-check-input me-2" checked>
+                                        <small class="text-success">✓</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4 text-center">
+            <button class="btn btn-secondary me-3">
+                <i class="fas fa-arrow-left me-2"></i>重新匹配
+            </button>
+            <button class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>保存结果
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MMP JavaScript调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 3px; }
+        .error { background: #ffeaea; color: #d00; }
+        .success { background: #eaffea; color: #0a0; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 MMP JavaScript调试工具</h1>
+    
+    <div class="test-section">
+        <h3>测试1: 基础JavaScript功能</h3>
+        <button onclick="testBasicJS()">测试基础JS</button>
+        <div id="basicResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试2: 自定义事件机制</h3>
+        <button onclick="testCustomEvents()">测试事件机制</button>
+        <div id="eventResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试3: API调用</h3>
+        <button onclick="testAPICall()">测试API调用</button>
+        <div id="apiResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试4: 模拟工作流匹配</h3>
+        <button onclick="testWorkflowMatching()">模拟匹配流程</button>
+        <div id="workflowResult" class="result"></div>
+    </div>
+
+    <script>
+        function testBasicJS() {
+            const resultDiv = document.getElementById('basicResult');
+            try {
+                // 测试基础JavaScript功能
+                const testArray = [1, 2, 3];
+                const testObj = { test: true };
+                const testDate = new Date();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ 基础JavaScript正常</h4>
+                        <p>数组: ${JSON.stringify(testArray)}</p>
+                        <p>对象: ${JSON.stringify(testObj)}</p>
+                        <p>时间: ${testDate.toISOString()}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ JavaScript错误</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function testCustomEvents() {
+            const resultDiv = document.getElementById('eventResult');
+            try {
+                // 测试自定义事件
+                const handleTestEvent = (event) => {
+                    const { message, count } = event.detail;
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ 自定义事件正常</h4>
+                            <p>消息: ${message}</p>
+                            <p>数量: ${count}</p>
+                        </div>
+                    `;
+                    window.removeEventListener('testEvent', handleTestEvent);
+                };
+                
+                window.addEventListener('testEvent', handleTestEvent);
+                
+                // 触发事件
+                const event = new CustomEvent('testEvent', {
+                    detail: { 
+                        message: "测试成功",
+                        count: 42 
+                    }
+                });
+                window.dispatchEvent(event);
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ 事件机制错误</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testAPICall() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '<p>正在测试API调用...</p>';
+            
+            try {
+                const testData = {
+                    "materials": [["TEST", "测试物料", "测试", "测试分类", "TEST", "", "个"]],
+                    "template": "universal-manufacturing"
+                };
+                
+                console.log('发送API请求:', testData);
+                
+                const startTime = Date.now();
+                const response = await fetch('/api/batch_material_matching', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const responseTime = Date.now() - startTime;
+                const result = await response.json();
+                
+                console.log('API响应:', result);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ API调用成功</h4>
+                        <p>响应时间: ${responseTime}ms</p>
+                        <p>状态: ${result.success ? '成功' : '失败'}</p>
+                        <p>结果数量: ${result.results ? result.results.length : 0}</p>
+                        <p>总计: ${result.total || 0}</p>
+                        <pre style="max-height: 200px; overflow: auto;">${JSON.stringify(result, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('API调用错误:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ API调用失败</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testWorkflowMatching() {
+            const resultDiv = document.getElementById('workflowResult');
+            resultDiv.innerHTML = '<p>正在模拟工作流匹配...</p>';
+            
+            try {
+                // 模拟工作流数据
+                const mockUploadedData = [
+                    ["M001", "304不锈钢疏水器", "疏水器", "管道配件", "DN25", "", "个"],
+                    ["M002", "碳钢螺塞", "螺塞", "紧固件", "M8", "", "个"]
+                ];
+                const mockSelectedTemplate = "universal-manufacturing";
+                
+                console.log(`模拟匹配: ${mockUploadedData.length}条数据, 模板: ${mockSelectedTemplate}`);
+                
+                // 模拟匹配完成事件
+                let eventReceived = false;
+                const handleMatchingComplete = (event) => {
+                    eventReceived = true;
+                    const { results, count, error } = event.detail;
+                    
+                    if (error) {
+                        resultDiv.innerHTML = `
+                            <div class="error">
+                                <h4>❌ 匹配失败</h4>
+                                <p>${error}</p>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="success">
+                                <h4>✅ 工作流匹配模拟成功</h4>
+                                <p>处理数量: ${count}条</p>
+                                <p>事件机制: 正常工作</p>
+                            </div>
+                        `;
+                    }
+                    window.removeEventListener('matchingComplete', handleMatchingComplete);
+                };
+                
+                window.addEventListener('matchingComplete', handleMatchingComplete);
+                
+                // 发送API请求
+                const response = await fetch('/api/batch_material_matching', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        materials: mockUploadedData,
+                        template: mockSelectedTemplate
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 触发匹配完成事件
+                    const event = new CustomEvent('matchingComplete', {
+                        detail: { 
+                            results: result.results,
+                            count: result.results.length 
+                        }
+                    });
+                    window.dispatchEvent(event);
+                } else {
+                    const event = new CustomEvent('matchingComplete', {
+                        detail: { 
+                            results: [],
+                            count: 0,
+                            error: result.error 
+                        }
+                    });
+                    window.dispatchEvent(event);
+                }
+                
+                // 检查事件是否被接收
+                setTimeout(() => {
+                    if (!eventReceived) {
+                        resultDiv.innerHTML = `
+                            <div class="error">
+                                <h4>❌ 事件未接收</h4>
+                                <p>API调用成功但事件机制有问题</p>
+                            </div>
+                        `;
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('工作流测试错误:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ 工作流测试失败</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 页面加载时输出调试信息
+        window.addEventListener('load', function() {
+            console.log('MMP JavaScript调试工具已加载');
+            console.log('当前URL:', window.location.href);
+            console.log('浏览器:', navigator.userAgent);
+        });
+        
+        // 捕获未处理的错误
+        window.addEventListener('error', function(event) {
+            console.error('JavaScript错误:', event.error);
+            console.error('错误位置:', event.filename, ':', event.lineno);
+        });
+    </script>
+</body>
+</html>

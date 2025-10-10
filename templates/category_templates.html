@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+
+{% block title %}分类模板管理 - MMP智能物料管理系统{% endblock %}
+
+{% block head %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #17a2b8;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --text-muted: #6c757d;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --border-radius: 0.375rem;
+    }
+
+    body { 
+        background: var(--light-bg); 
+        padding: 2rem 0; 
+    }
+
+    .template-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+    }
+
+    .template-header h2 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 2rem;
+    }
+
+    .template-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+
+    .template-card { 
+        margin-bottom: 1.5rem; 
+        border: none;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+    }
+
+    .template-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .template-item {
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .template-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 4px;
+        background: var(--secondary-color);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .template-item:hover::before {
+        transform: scaleY(1);
+    }
+
+    .template-item:hover {
+        border-color: var(--secondary-color);
+        box-shadow: var(--shadow-md);
+    }
+
+    .template-header-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .template-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .template-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-manufacturing { background: #e3f2fd; color: #1976d2; }
+    .badge-chemical { background: #f3e5f5; color: #7b1fa2; }
+    .badge-mechanical { background: #e8f5e8; color: #388e3c; }
+    .badge-universal { background: #fff3e0; color: #f57c00; }
+
+    .template-description {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .template-stats {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    .stat-number {
+        font-weight: 600;
+        color: var(--secondary-color);
+    }
+
+    .template-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .template-meta {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .view-btn {
+        padding: 0.5rem 1rem;
+        background: var(--secondary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .view-btn:hover {
+        background: #2980b9;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .nav-breadcrumb {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .search-filter-bar {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .filter-btn {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .filter-btn.active {
+        background: var(--secondary-color);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- 页面标题 -->
+    <div class="template-header text-center">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="/template-selection" class="btn btn-outline-light btn-sm">
+                    <i class="fas fa-arrow-left me-2"></i>返回模板选择
+                </a>
+                <div class="page-actions">
+                    <a href="/categories" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-sitemap me-2"></i>分类管理
+                    </a>
+                </div>
+            </div>
+            <h2>
+                <i class="fas fa-layer-group me-3"></i>
+                分类模板管理
+            </h2>
+            <p>浏览和选择不同的分类模板 - 支持多种行业和应用场景</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 面包屑导航 -->
+        <div class="nav-breadcrumb">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/">首页</a></li>
+                    <li class="breadcrumb-item"><a href="/template-selection">模板选择</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">分类模板管理</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- 搜索和筛选 -->
+        <div class="search-filter-bar">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="搜索模板名称、描述或适用行业...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="industryFilter">
+                        <option value="">所有行业</option>
+                        <option value="manufacturing">制造业</option>
+                        <option value="chemical">化工行业</option>
+                        <option value="mechanical">机械行业</option>
+                        <option value="construction">建筑行业</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <label class="form-label fw-bold">按模板类型筛选:</label>
+                    <div>
+                        <button class="btn btn-outline-secondary btn-sm filter-btn active" data-filter="all">
+                            <i class="fas fa-list me-1"></i>全部
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm filter-btn" data-filter="universal">
+                            <i class="fas fa-globe me-1"></i>通用模板
+                        </button>
+                        <button class="btn btn-outline-success btn-sm filter-btn" data-filter="industry">
+                            <i class="fas fa-industry me-1"></i>行业专用
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm filter-btn" data-filter="custom">
+                            <i class="fas fa-cogs me-1"></i>定制模板
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模板列表 -->
+        <div class="row" id="templateList">
+            <!-- 模板项将通过JavaScript动态加载 -->
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="mt-3 text-muted">正在加载分类模板...</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+// 模板数据
+const templateData = [
+    {
+        id: 'universal-manufacturing',
+        name: '物料统一模板',
+        description: '适用于制造业全领域的通用分类体系，包含化工、机械、金属、建材等18个主要行业分类，支持3层级深度结构。',
+        industry: 'manufacturing',
+        type: 'universal',
+        categories: 548,
+        levels: 3,
+        topCategories: 18,
+        compatibility: '95%',
+        createDate: '2025-01-15',
+        updateDate: '2025-09-20',
+        badgeClass: 'badge-manufacturing'
+    },
+    {
+        id: 'chemical-specialized',
+        name: '化工行业专用模板',
+        description: '专门针对化工行业设计的分类模板，包含化学原料、试剂、设备等专业分类，适合化工企业使用。',
+        industry: 'chemical',
+        type: 'industry',
+        categories: 312,
+        levels: 4,
+        topCategories: 8,
+        compatibility: '98%',
+        createDate: '2025-02-10',
+        updateDate: '2025-08-15',
+        badgeClass: 'badge-chemical'
+    },
+    {
+        id: 'mechanical-engineering',
+        name: '机械工程模板',
+        description: '专为机械制造行业打造，涵盖通用机械、专用设备、零配件等完整分类体系。',
+        industry: 'mechanical',
+        type: 'industry',
+        categories: 425,
+        levels: 3,
+        topCategories: 12,
+        compatibility: '92%',
+        createDate: '2025-01-28',
+        updateDate: '2025-09-10',
+        badgeClass: 'badge-mechanical'
+    },
+    {
+        id: 'construction-materials',
+        name: '建材行业模板',
+        description: '建筑材料行业专用分类模板，包含各类建材、五金、装饰材料等分类。',
+        industry: 'construction',
+        type: 'industry',
+        categories: 267,
+        levels: 3,
+        topCategories: 9,
+        compatibility: '89%',
+        createDate: '2025-03-05',
+        updateDate: '2025-07-22',
+        badgeClass: 'badge-universal'
+    },
+    {
+        id: 'custom-enterprise',
+        name: '企业定制模板',
+        description: '根据特定企业需求定制的分类模板，可按需调整分类结构和层次。',
+        industry: 'manufacturing',
+        type: 'custom',
+        categories: 189,
+        levels: 2,
+        topCategories: 15,
+        compatibility: '100%',
+        createDate: '2025-04-12',
+        updateDate: '2025-09-01',
+        badgeClass: 'badge-universal'
+    }
+];
+
+// 渲染模板列表
+function renderTemplates(templates = templateData) {
+    const container = document.getElementById('templateList');
+    
+    if (templates.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">没有找到匹配的模板</h5>
+                <p class="text-muted">请尝试调整搜索条件或筛选选项</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = templates.map(template => `
+        <div class="col-md-6 col-lg-4 template-card">
+            <div class="template-item" onclick="viewTemplate('${template.id}')">
+                <div class="template-header-info">
+                    <h5 class="template-title">
+                        <a href="/categories?template=${template.id}" style="color: var(--primary-color); text-decoration: none;">${template.name}</a>
+                    </h5>
+                    <span class="template-badge ${template.badgeClass}">${getIndustryName(template.industry)}</span>
+                </div>
+                
+                <p class="template-description">${template.description}</p>
+                
+                <div class="template-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-list"></i>
+                        <span class="stat-number">${template.categories}</span>
+                        <span>分类数</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-layer-group"></i>
+                        <span class="stat-number">${template.levels}</span>
+                        <span>层级</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="stat-number">${template.compatibility}</span>
+                        <span>适配度</span>
+                    </div>
+                </div>
+                
+                <div class="template-actions">
+                    <div class="template-meta">
+                        更新时间: ${formatDate(template.updateDate)}
+                    </div>
+                    <a href="/categories?template=${template.id}" class="view-btn">
+                        <i class="fas fa-eye me-1"></i>查看详情
+                    </a>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 辅助函数
+function getIndustryName(industry) {
+    const names = {
+        manufacturing: '制造业',
+        chemical: '化工',
+        mechanical: '机械', 
+        construction: '建材'
+    };
+    return names[industry] || industry;
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('zh-CN');
+}
+
+function viewTemplate(templateId) {
+    console.log('查看模板:', templateId);
+    window.location.href = `/categories?template=${templateId}`;
+}
+
+// 搜索和筛选功能
+function initSearchAndFilter() {
+    const searchInput = document.getElementById('searchInput');
+    const industryFilter = document.getElementById('industryFilter');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    
+    let currentFilters = {
+        search: '',
+        industry: '',
+        type: 'all'
+    };
+    
+    // 搜索功能
+    searchInput.addEventListener('input', (e) => {
+        currentFilters.search = e.target.value.toLowerCase();
+        applyFilters();
+    });
+    
+    // 行业筛选
+    industryFilter.addEventListener('change', (e) => {
+        currentFilters.industry = e.target.value;
+        applyFilters();
+    });
+    
+    // 类型筛选
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilters.type = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+    
+    function applyFilters() {
+        let filtered = templateData.filter(template => {
+            // 搜索筛选
+            if (currentFilters.search && 
+                !template.name.toLowerCase().includes(currentFilters.search) &&
+                !template.description.toLowerCase().includes(currentFilters.search)) {
+                return false;
+            }
+            
+            // 行业筛选
+            if (currentFilters.industry && template.industry !== currentFilters.industry) {
+                return false;
+            }
+            
+            // 类型筛选
+            if (currentFilters.type !== 'all' && template.type !== currentFilters.type) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        renderTemplates(filtered);
+    }
+}
+
+// 初始化页面
+document.addEventListener('DOMContentLoaded', function() {
+    renderTemplates();
+    initSearchAndFilter();
+});
+</script>
+{% endblock %}

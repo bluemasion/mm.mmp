@@ -2,6 +2,97 @@
 
 {% block title %}表单生成 - 物料主数据管理智能应用{% endblock %}
 
+{% block extra_css %}
+<style>
+/* 修复模态框显示问题 */
+#formPreviewModal .modal-dialog {
+    max-width: 95vw;
+    width: 95vw;
+    height: 95vh;
+    margin: 1rem auto;
+}
+
+#formPreviewModal .modal-content {
+    height: 95vh;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+    z-index: 1062;
+    position: relative;
+    background: white !important;
+}
+
+#formPreviewModal .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    pointer-events: auto;
+}
+
+/* 修复背景遮罩问题 */
+.modal-backdrop {
+    z-index: 1055 !important;
+    pointer-events: none !important;
+}
+
+#formPreviewModal,
+#addFieldModal {
+    z-index: 1060 !important;
+    pointer-events: auto !important;
+}
+
+#formPreviewModal .modal-dialog,
+#addFieldModal .modal-dialog {
+    pointer-events: auto !important;
+    z-index: 1061 !important;
+}
+
+#formPreviewModal .modal-content,
+#addFieldModal .modal-content {
+    pointer-events: auto !important;
+    z-index: 1062 !important;
+    background: white !important;
+}
+
+#formPreviewModal .modal-header,
+#formPreviewModal .modal-body,
+#formPreviewModal .modal-footer,
+#addFieldModal .modal-header,
+#addFieldModal .modal-body,
+#addFieldModal .modal-footer {
+    pointer-events: auto !important;
+    z-index: 1063 !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    #formPreviewModal .modal-dialog {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        margin: 0;
+    }
+    
+    #formPreviewModal .modal-content {
+        height: 100vh;
+        border-radius: 0;
+    }
+}
+
+/* PC端优化 */
+@media (min-width: 992px) {
+    #formPreviewModal .modal-dialog {
+        width: 90vw;
+        height: 90vh;
+    }
+    
+    #formPreviewModal .modal-content {
+        height: 90vh;
+    }
+}
+</style>
+{% endblock %}
+
 {% block breadcrumb_items %}
 <li class="breadcrumb-item"><a href="/upload">数据导入</a></li>
 <li class="breadcrumb-item"><a href="/extract_parameters">参数提取</a></li>
@@ -11,8 +102,8 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow-sm">
+<div class="col-12">
+    <div class="card shadow-sm">
             <div class="card-header bg-white">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-wpforms text-primary"></i> 智能表单生成
@@ -249,7 +340,7 @@
                         <i class="fas fa-arrow-left"></i> 上一步
                     </button>
                     <div>
-                        <button type="button" class="btn btn-outline-primary me-2" onclick="previewForm()">
+                                                <button type="button" class="btn btn-outline-primary me-2" onclick="previewForm()">
                             <i class="fas fa-eye"></i> 预览表单
                         </button>
                         <button type="button" class="btn btn-primary" onclick="generateForms()">
@@ -439,7 +530,7 @@
 
 <!-- 添加字段模态框 -->
 <div class="modal fade" id="addFieldModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">添加自定义字段</h5>
@@ -490,8 +581,15 @@ let formConfig = {};
 let fieldCounter = 0;
 
 $(document).ready(function() {
+    console.log('Document ready - form generation page loaded');
+    
     // 初始化表单模板
-    initializeFormTemplate();
+    try {
+        initializeFormTemplate();
+        console.log('Form template initialized successfully');
+    } catch (error) {
+        console.error('Error initializing form template:', error);
+    }
     
     // 模板选择变化
     $('input[name="formTemplate"]').change(function() {
@@ -623,7 +721,71 @@ function removeField(index) {
 }
 
 function addCustomField() {
-    $('#addFieldModal').modal('show');
+    // 使用Bootstrap 5原生API显示模态框
+    const modalElement = document.getElementById('addFieldModal');
+    
+    // 移除可能存在的旧实例
+    const existingModal = bootstrap.Modal.getInstance(modalElement);
+    if (existingModal) {
+        existingModal.dispose();
+    }
+    
+    // 创建新的模态框实例
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: false,  // 禁用backdrop避免交互问题
+        keyboard: true,
+        focus: true
+    });
+    
+    // 手动添加backdrop并确保不影响交互
+    let customBackdrop = document.querySelector('.custom-modal-backdrop');
+    if (!customBackdrop) {
+        customBackdrop = document.createElement('div');
+        customBackdrop.className = 'custom-modal-backdrop';
+        customBackdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1055;
+            pointer-events: none;
+        `;
+        document.body.appendChild(customBackdrop);
+    }
+    
+    // 确保模态框内容可以交互
+    modalElement.addEventListener('shown.bs.modal', function () {
+        modalElement.style.pointerEvents = 'auto';
+        modalElement.style.zIndex = '1060';
+        
+        const modalContent = modalElement.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.style.pointerEvents = 'auto';
+            modalContent.style.zIndex = '1062';
+            modalContent.style.position = 'relative';
+            modalContent.style.backgroundColor = 'white';
+        }
+        
+        // 确保所有交互元素都可以点击
+        const interactiveElements = modalElement.querySelectorAll('input, button, select, a, .btn');
+        interactiveElements.forEach(el => {
+            el.style.pointerEvents = 'auto';
+            el.style.position = 'relative';
+            el.style.zIndex = '1063';
+        });
+    });
+    
+    // 监听模态框隐藏事件，清理自定义backdrop
+    modalElement.addEventListener('hidden.bs.modal', function () {
+        const backdrop = document.querySelector('.custom-modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    });
+    
+    modal.show();
 }
 
 function saveCustomField() {
@@ -698,20 +860,32 @@ function saveCustomField() {
     $('#fieldOptionsList').val('');
     $('#fieldOptions').hide();
     
-    $('#addFieldModal').modal('hide');
+    // 使用Bootstrap 5原生API隐藏模态框
+    const modalElement = document.getElementById('addFieldModal');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    if (modal) {
+        modal.hide();
+    }
     showSuccessMessage('自定义字段添加成功');
 }
 
 function previewForm() {
-    showLoading('正在生成表单预览...');
+    console.log('previewForm function called by user action');
     
-    setTimeout(function() {
-        hideLoading();
-        
+    try {
+        // 生成预览HTML
         const previewHtml = generateFormPreview();
-        $('#formPreviewModalContent').html(previewHtml);
+        document.getElementById('formPreviewModalContent').innerHTML = previewHtml;
+        
+        // 显示模态框
         $('#formPreviewModal').modal('show');
-    }, 1500);
+        
+        console.log('Form preview modal shown successfully');
+        
+    } catch (error) {
+        console.error('Error in previewForm:', error);
+        alert('预览生成失败，请重试');
+    }
 }
 
 function generateFormPreview() {

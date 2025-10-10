@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>算法测试调试</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 3px; }
+        .error { background: #ffeaea; color: #d00; }
+        .success { background: #eaffea; color: #0a0; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔬 MMP算法测试调试页面</h1>
+    
+    <div class="test-section">
+        <h3>测试1: 直接API调用</h3>
+        <button onclick="testAPI()">测试批量匹配API</button>
+        <div id="apiResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试2: 模拟工作流数据</h3>
+        <button onclick="testWorkflowData()">测试工作流数据处理</button>
+        <div id="workflowResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试3: 数据格式验证</h3>
+        <button onclick="testDataFormat()">验证数据格式</button>
+        <div id="formatResult" class="result"></div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '正在测试...';
+            
+            try {
+                const testData = {
+                    "materials": [
+                        ["M001", "304不锈钢疏水器", "疏水器", "管道配件", "DN25", "", "个"],
+                        ["M002", "碳钢螺塞", "螺塞", "紧固件", "M8", "", "个"],
+                        ["M003", "法兰盘", "法兰", "管道配件", "DN100", "", "个"]
+                    ],
+                    "template": "universal-manufacturing"
+                };
+                
+                console.log('发送数据:', testData);
+                
+                const response = await fetch('/api/batch_material_matching', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                console.log('API响应:', result);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>API响应成功!</h4>
+                        <p><strong>状态:</strong> ${result.success ? '成功' : '失败'}</p>
+                        <p><strong>结果数量:</strong> ${result.results ? result.results.length : 0}</p>
+                        <p><strong>总计:</strong> ${result.total || 0}</p>
+                        <p><strong>模板:</strong> ${result.template || '未知'}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('API错误:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>API调用失败!</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testWorkflowData() {
+            const resultDiv = document.getElementById('workflowResult');
+            resultDiv.innerHTML = '正在模拟工作流...';
+            
+            // 模拟工作流处理
+            const mockUploadedData = [
+                ["M001", "304不锈钢疏水器", "疏水器", "管道配件", "DN25", "", "个"]
+            ];
+            
+            const mockSelectedTemplate = "universal-manufacturing";
+            
+            try {
+                const response = await fetch('/api/batch_material_matching', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        materials: mockUploadedData,
+                        template: mockSelectedTemplate
+                    })
+                });
+                
+                const result = await response.json();
+                
+                // 模拟 displayResults() 逻辑
+                let matchingResults = result.results;
+                let displayHTML = '';
+                
+                if (!matchingResults || matchingResults.length === 0) {
+                    displayHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <h5 style="color: #6c757d;">暂无匹配结果</h5>
+                        </div>
+                    `;
+                } else {
+                    displayHTML = `
+                        <table border="1" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #343a40; color: white;">
+                                    <th>物料名称</th>
+                                    <th>规格</th>
+                                    <th>分类结果</th>
+                                    <th>置信度</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${matchingResults.map(result => `
+                                    <tr>
+                                        <td>${result.material_name || '未知物料'}</td>
+                                        <td>${result.material_spec || '无规格信息'}</td>
+                                        <td>${result.classification || '未分类'}</td>
+                                        <td>${result.classification_confidence || 0}%</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>工作流模拟结果:</h4>
+                        <p><strong>匹配结果数量:</strong> ${matchingResults ? matchingResults.length : 0}</p>
+                        <p><strong>显示内容:</strong></p>
+                        ${displayHTML}
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('工作流错误:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>工作流模拟失败!</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function testDataFormat() {
+            const resultDiv = document.getElementById('formatResult');
+            
+            // 测试各种数据格式
+            const testCases = [
+                {
+                    name: "正常格式",
+                    data: [["M001", "304不锈钢疏水器", "疏水器", "管道配件", "DN25", "", "个"]],
+                    valid: true
+                },
+                {
+                    name: "缺少字段",
+                    data: [["M001", "304不锈钢疏水器"]],
+                    valid: false
+                },
+                {
+                    name: "空数组",
+                    data: [],
+                    valid: false
+                },
+                {
+                    name: "包含空值",
+                    data: [["", "", "", "", "", "", ""]],
+                    valid: false
+                }
+            ];
+            
+            let formatHTML = '<ul>';
+            testCases.forEach(testCase => {
+                formatHTML += `
+                    <li>
+                        <strong>${testCase.name}:</strong> 
+                        ${testCase.valid ? '✅ 有效' : '❌ 无效'}
+                        <br><code>${JSON.stringify(testCase.data)}</code>
+                    </li>
+                `;
+            });
+            formatHTML += '</ul>';
+            
+            resultDiv.innerHTML = `
+                <div>
+                    <h4>数据格式验证结果:</h4>
+                    ${formatHTML}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

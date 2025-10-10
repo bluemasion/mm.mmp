@@ -1,0 +1,75 @@
+# MMP系统依赖包清单 - Python 3.6 兼容版本
+
+# 核心框架 - Python 3.6 兼容版本
+Flask==1.1.4                # 支持Python 3.6
+Werkzeug==1.0.1             # Flask 1.1.4 兼容版本
+pandas==1.1.5               # 最后支持Python 3.6的版本
+numpy==1.19.5               # Python 3.6 兼容
+scikit-learn==0.24.2        # 最后支持Python 3.6的版本
+
+# 文本处理 - 中文支持
+jieba==0.42.1
+zhconv==1.4.3               # 繁简转换
+
+# 文档处理
+openpyxl==3.0.9             # Excel处理
+xlrd==2.0.1                 # 老版本Excel支持
+PyPDF2==2.11.1              # PDF处理 - Python 3.6 兼容
+python-docx==0.8.11         # Word文档处理
+
+# 图像处理 - 简化版本
+Pillow==8.4.0               # Python 3.6 兼容的最后版本
+
+# 数据库支持 - Python 3.6 兼容版本
+SQLAlchemy==1.3.24          # Python 3.6 兼容
+psycopg2-binary==2.8.6      # PostgreSQL驱动
+PyMySQL==1.0.2              # MySQL驱动（纯Python）
+pymongo==3.12.3             # MongoDB驱动 - Python 3.6 兼容
+redis==3.5.3                # Redis缓存
+
+# API和网络
+requests==2.27.1            # HTTP请求 - Python 3.6 兼容
+urllib3==1.26.12            # HTTP库
+
+# 数据处理和分析
+scipy==1.5.4                # 科学计算 - Python 3.6 兼容
+matplotlib==3.3.4           # 图表绘制 - Python 3.6 兼容
+seaborn==0.11.2             # 统计图表
+
+# Web表单和验证
+WTForms==2.3.3              # 表单处理
+Flask-WTF==0.15.1           # Flask表单集成
+
+# 日期时间处理
+python-dateutil==2.8.2     # 日期解析
+
+# 配置管理
+python-dotenv==0.19.2       # 环境变量管理
+
+# 日志记录
+loguru==0.6.0               # 高级日志库
+
+# 文件处理
+chardet==4.0.0              # 字符编码检测
+
+# 数学和统计
+statsmodels==0.12.2         # 统计模型 - Python 3.6 兼容
+
+# 缓存
+cachetools==4.2.4           # 缓存工具
+
+# 网络工具
+ipaddress                   # IP地址处理（Python 3.6内置）
+
+# 开发工具
+pytest==6.2.5              # 测试框架 - Python 3.6 兼容
+pytest-cov==3.0.0          # 代码覆盖率
+
+# 系统工具
+psutil==5.8.0               # 系统信息 - Python 3.6 兼容
+
+# 注意事项：
+# 1. 本版本专为 Python 3.6 优化
+# 2. 部分高级功能（如深度学习模型）被移除或降级
+# 3. 建议升级到 Python 3.8+ 以获得更好的功能支持
+# 4. 如果必须使用 Python 3.6，某些最新特性可能不可用

@@ -1,0 +1,917 @@
+{% extends "base.html" %}
+
+{% block title %}表单生成 - 物料主数据管理智能应用{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/upload">数据导入</a></li>
+<li class="breadcrumb-item"><a href="/extract_parameters">参数提取</a></li>
+<li class="breadcrumb-item"><a href="/categorize">类别选择</a></li>
+<li class="breadcrumb-item active">表单生成</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-wpforms text-primary"></i> 智能表单生成
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 数据处理状态 -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <div class="h5 mb-0">1,180</div>
+                                <div class="small">已分类数据</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <div class="h5 mb-0">885</div>
+                                <div class="small">自动分类</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <div class="h5 mb-0">225</div>
+                                <div class="small">待确认</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <div class="h5 mb-0">70</div>
+                                <div class="small">需人工处理</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 表单模板选择 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">表单模板选择</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card template-card border-primary" data-template="standard">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-file-alt fa-3x text-primary mb-3"></i>
+                                    <h6>标准采购表单</h6>
+                                    <p class="small text-muted">包含基本物料信息、供应商信息、价格信息</p>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="formTemplate" 
+                                               id="standardTemplate" value="standard" checked>
+                                        <label class="form-check-label" for="standardTemplate">选择</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card template-card" data-template="detailed">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-list-alt fa-3x text-success mb-3"></i>
+                                    <h6>详细信息表单</h6>
+                                    <p class="small text-muted">包含完整物料属性、技术参数、合规信息</p>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="formTemplate" 
+                                               id="detailedTemplate" value="detailed">
+                                        <label class="form-check-label" for="detailedTemplate">选择</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card template-card" data-template="custom">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-cogs fa-3x text-warning mb-3"></i>
+                                    <h6>自定义表单</h6>
+                                    <p class="small text-muted">根据具体需求自定义字段和验证规则</p>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="formTemplate" 
+                                               id="customTemplate" value="custom">
+                                        <label class="form-check-label" for="customTemplate">选择</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 表单字段配置 -->
+                <div class="mb-4" id="formFieldsConfig">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">表单字段配置</h6>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addCustomField()">
+                            <i class="fas fa-plus"></i> 添加字段
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="formFieldsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 200px;">字段名称</th>
+                                    <th style="width: 120px;">字段类型</th>
+                                    <th style="width: 100px;">必填</th>
+                                    <th style="width: 120px;">数据源</th>
+                                    <th>验证规则</th>
+                                    <th style="width: 100px;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="formFieldsBody">
+                                <!-- 动态生成表单字段行 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 表单布局设置 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">表单布局设置</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="formLayout" class="form-label">布局类型</label>
+                                <select class="form-select" id="formLayout">
+                                    <option value="single_column" selected>单列布局</option>
+                                    <option value="two_columns">双列布局</option>
+                                    <option value="three_columns">三列布局</option>
+                                    <option value="tabbed">标签页布局</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="formStyle" class="form-label">表单样式</label>
+                                <select class="form-select" id="formStyle">
+                                    <option value="bootstrap" selected>Bootstrap风格</option>
+                                    <option value="material">Material Design</option>
+                                    <option value="compact">紧凑型</option>
+                                    <option value="spacious">宽松型</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="submitBehavior" class="form-label">提交行为</label>
+                                <select class="form-select" id="submitBehavior">
+                                    <option value="save_continue" selected>保存并继续</option>
+                                    <option value="save_new">保存并新建</option>
+                                    <option value="save_close">保存并关闭</option>
+                                    <option value="draft">保存为草稿</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="validationMode" class="form-label">验证模式</label>
+                                <select class="form-select" id="validationMode">
+                                    <option value="realtime" selected>实时验证</option>
+                                    <option value="onsubmit">提交时验证</option>
+                                    <option value="onblur">失焦验证</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 智能填充配置 -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-3">智能填充配置</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">自动填充选项</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableAutoFill" checked>
+                                        <label class="form-check-label" for="enableAutoFill">
+                                            启用智能填充
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableSuggestions" checked>
+                                        <label class="form-check-label" for="enableSuggestions">
+                                            显示填充建议
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableValidation" checked>
+                                        <label class="form-check-label" for="enableValidation">
+                                            自动数据验证
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-light">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">填充优先级</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <label class="form-label small">数据源优先级</label>
+                                        <div class="small">
+                                            <span class="badge bg-primary">1</span> 提取数据
+                                            <span class="badge bg-secondary">2</span> 历史数据
+                                            <span class="badge bg-info">3</span> 默认值
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label for="fillConfidence" class="form-label small">最小置信度</label>
+                                        <input type="range" class="form-range" id="fillConfidence" 
+                                               min="0.5" max="1.0" step="0.05" value="0.75">
+                                        <div class="d-flex justify-content-between">
+                                            <small>0.5</small>
+                                            <small id="fillConfidenceValue">0.75</small>
+                                            <small>1.0</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left"></i> 上一步
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary me-2" onclick="previewForm()">
+                            <i class="fas fa-eye"></i> 预览表单
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="generateForms()">
+                            <i class="fas fa-magic"></i> 生成表单
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右侧信息 -->
+    <div class="col-lg-4">
+        <!-- 生成进度 -->
+        <div class="card shadow-sm mb-4" id="generationProgress" style="display: none;">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog fa-spin text-primary"></i> 表单生成进度
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>生成进度</span>
+                        <span id="generationPercent">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" id="generationBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="small text-muted">
+                    <div><i class="fas fa-check-circle text-success"></i> 已生成：<span id="generatedCount">0</span></div>
+                    <div><i class="fas fa-clock text-warning"></i> 待处理：<span id="pendingCount">0</span></div>
+                    <div><i class="fas fa-exclamation-triangle text-danger"></i> 错误：<span id="errorCount">0</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 表单预览 -->
+        <div class="card shadow-sm" id="formPreviewCard" style="display: none;">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-search text-info"></i> 表单预览
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="formPreviewContent">
+                    <!-- 动态生成表单预览 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模板说明 -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle text-info"></i> 模板说明
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="templateHelpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="standardHelp">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#standardHelpContent">
+                                标准模板
+                            </button>
+                        </h2>
+                        <div id="standardHelpContent" class="accordion-collapse collapse show" 
+                             data-bs-parent="#templateHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-check text-success"></i> 物料基本信息</li>
+                                    <li><i class="fas fa-check text-success"></i> 供应商信息</li>
+                                    <li><i class="fas fa-check text-success"></i> 价格和数量</li>
+                                    <li><i class="fas fa-check text-success"></i> 交付信息</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 适用于常规采购</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="detailedHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#detailedHelpContent">
+                                详细模板
+                            </button>
+                        </h2>
+                        <div id="detailedHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#templateHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-check text-success"></i> 完整技术参数</li>
+                                    <li><i class="fas fa-check text-success"></i> 合规认证信息</li>
+                                    <li><i class="fas fa-check text-success"></i> 质量标准</li>
+                                    <li><i class="fas fa-check text-success"></i> 风险评估</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 适用于专业设备</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="customHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#customHelpContent">
+                                自定义模板
+                            </button>
+                        </h2>
+                        <div id="customHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#templateHelpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled small">
+                                    <li><i class="fas fa-cogs text-warning"></i> 灵活字段配置</li>
+                                    <li><i class="fas fa-cogs text-warning"></i> 自定义验证规则</li>
+                                    <li><i class="fas fa-cogs text-warning"></i> 个性化布局</li>
+                                    <li><i class="fas fa-cogs text-warning"></i> 业务流程集成</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 适用于特殊需求</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 字段类型说明 -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list text-secondary"></i> 字段类型
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-2">
+                        <i class="fas fa-font text-primary"></i>
+                        <div class="small">文本</div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <i class="fas fa-hashtag text-success"></i>
+                        <div class="small">数字</div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <i class="fas fa-calendar text-info"></i>
+                        <div class="small">日期</div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <i class="fas fa-list-ul text-warning"></i>
+                        <div class="small">选择</div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <i class="fas fa-check-square text-secondary"></i>
+                        <div class="small">复选</div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <i class="fas fa-paperclip text-danger"></i>
+                        <div class="small">文件</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 表单预览模态框 -->
+<div class="modal fade" id="formPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">表单预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="formPreviewModalContent">
+                    <!-- 动态生成表单预览内容 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="generateForms()">生成表单</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加字段模态框 -->
+<div class="modal fade" id="addFieldModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加自定义字段</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="fieldName" class="form-label">字段名称</label>
+                    <input type="text" class="form-control" id="fieldName" placeholder="例如：紧急程度">
+                </div>
+                <div class="mb-3">
+                    <label for="fieldType" class="form-label">字段类型</label>
+                    <select class="form-select" id="fieldType">
+                        <option value="text">文本</option>
+                        <option value="number">数字</option>
+                        <option value="date">日期</option>
+                        <option value="select">下拉选择</option>
+                        <option value="checkbox">复选框</option>
+                        <option value="textarea">多行文本</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="fieldRequired">
+                        <label class="form-check-label" for="fieldRequired">
+                            必填字段
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-3" id="fieldOptions" style="display: none;">
+                    <label for="fieldOptionsList" class="form-label">选项列表</label>
+                    <textarea class="form-control" id="fieldOptionsList" rows="3" 
+                              placeholder="每行一个选项，例如：&#10;高&#10;中&#10;低"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveCustomField()">添加字段</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let formConfig = {};
+let fieldCounter = 0;
+
+$(document).ready(function() {
+    // 初始化表单模板
+    initializeFormTemplate();
+    
+    // 模板选择变化
+    $('input[name="formTemplate"]').change(function() {
+        const template = $(this).val();
+        loadFormTemplate(template);
+        updateTemplateCardStyle();
+    });
+    
+    // 字段类型变化显示选项
+    $('#fieldType').change(function() {
+        if ($(this).val() === 'select') {
+            $('#fieldOptions').show();
+        } else {
+            $('#fieldOptions').hide();
+        }
+    });
+    
+    // 置信度变化
+    $('#fillConfidence').on('input', function() {
+        $('#fillConfidenceValue').text($(this).val());
+    });
+});
+
+function initializeFormTemplate() {
+    loadFormTemplate('standard');
+    updateTemplateCardStyle();
+}
+
+function updateTemplateCardStyle() {
+    $('.template-card').removeClass('border-primary border-2');
+    const selectedTemplate = $('input[name="formTemplate"]:checked').val();
+    $(`.template-card[data-template="${selectedTemplate}"]`).addClass('border-primary border-2');
+}
+
+function loadFormTemplate(template) {
+    const templates = {
+        'standard': [
+            {name: '物料名称', type: 'text', required: true, source: 'extracted', validation: '长度2-100字符'},
+            {name: '规格型号', type: 'text', required: true, source: 'extracted', validation: '长度1-50字符'},
+            {name: '生产厂家', type: 'text', required: true, source: 'extracted', validation: '长度2-50字符'},
+            {name: '供应商', type: 'select', required: true, source: 'manual', validation: '从供应商列表选择'},
+            {name: '采购数量', type: 'number', required: true, source: 'manual', validation: '大于0的整数'},
+            {name: '单价', type: 'number', required: true, source: 'manual', validation: '大于0的数值'},
+            {name: '交付日期', type: 'date', required: true, source: 'manual', validation: '不能早于今天'}
+        ],
+        'detailed': [
+            {name: '物料名称', type: 'text', required: true, source: 'extracted', validation: '长度2-100字符'},
+            {name: '规格型号', type: 'text', required: true, source: 'extracted', validation: '长度1-50字符'},
+            {name: '生产厂家', type: 'text', required: true, source: 'extracted', validation: '长度2-50字符'},
+            {name: '医保编码', type: 'text', required: false, source: 'extracted', validation: '标准编码格式'},
+            {name: '技术参数', type: 'textarea', required: true, source: 'manual', validation: '详细描述技术指标'},
+            {name: '质量标准', type: 'select', required: true, source: 'manual', validation: '符合行业标准'},
+            {name: '认证证书', type: 'file', required: true, source: 'manual', validation: 'PDF或图片格式'},
+            {name: '风险等级', type: 'select', required: true, source: 'manual', validation: '高/中/低'},
+            {name: '使用科室', type: 'checkbox', required: true, source: 'manual', validation: '至少选择一个科室'}
+        ],
+        'custom': [
+            {name: '物料名称', type: 'text', required: true, source: 'extracted', validation: '长度2-100字符'},
+            {name: '规格型号', type: 'text', required: true, source: 'extracted', validation: '长度1-50字符'}
+        ]
+    };
+    
+    const fields = templates[template] || templates['standard'];
+    displayFormFields(fields);
+}
+
+function displayFormFields(fields) {
+    let tableHtml = '';
+    
+    fields.forEach(function(field, index) {
+        const sourceOptions = {
+            'extracted': '<option value="extracted" selected>提取数据</option><option value="manual">手工输入</option><option value="default">默认值</option>',
+            'manual': '<option value="extracted">提取数据</option><option value="manual" selected>手工输入</option><option value="default">默认值</option>',
+            'default': '<option value="extracted">提取数据</option><option value="manual">手工输入</option><option value="default" selected>默认值</option>'
+        };
+        
+        tableHtml += `
+            <tr data-field-id="${index}">
+                <td>
+                    <input type="text" class="form-control form-control-sm" value="${field.name}" 
+                           onchange="updateField(${index}, 'name', this.value)">
+                </td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="updateField(${index}, 'type', this.value)">
+                        <option value="text" ${field.type === 'text' ? 'selected' : ''}>文本</option>
+                        <option value="number" ${field.type === 'number' ? 'selected' : ''}>数字</option>
+                        <option value="date" ${field.type === 'date' ? 'selected' : ''}>日期</option>
+                        <option value="select" ${field.type === 'select' ? 'selected' : ''}>选择</option>
+                        <option value="checkbox" ${field.type === 'checkbox' ? 'selected' : ''}>复选</option>
+                        <option value="textarea" ${field.type === 'textarea' ? 'selected' : ''}>多行</option>
+                        <option value="file" ${field.type === 'file' ? 'selected' : ''}>文件</option>
+                    </select>
+                </td>
+                <td class="text-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" ${field.required ? 'checked' : ''} 
+                               onchange="updateField(${index}, 'required', this.checked)">
+                    </div>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="updateField(${index}, 'source', this.value)">
+                        ${sourceOptions[field.source]}
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" value="${field.validation}" 
+                           onchange="updateField(${index}, 'validation', this.value)">
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-outline-danger btn-sm" onclick="removeField(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    $('#formFieldsBody').html(tableHtml);
+    fieldCounter = fields.length;
+}
+
+function updateField(index, property, value) {
+    // 更新字段配置
+    console.log(`更新字段 ${index} 的 ${property} 为 ${value}`);
+}
+
+function removeField(index) {
+    $(`tr[data-field-id="${index}"]`).remove();
+}
+
+function addCustomField() {
+    $('#addFieldModal').modal('show');
+}
+
+function saveCustomField() {
+    const name = $('#fieldName').val().trim();
+    const type = $('#fieldType').val();
+    const required = $('#fieldRequired').is(':checked');
+    const options = $('#fieldOptionsList').val().trim();
+    
+    if (!name) {
+        alert('请输入字段名称');
+        return;
+    }
+    
+    const newField = {
+        name: name,
+        type: type,
+        required: required,
+        source: 'manual',
+        validation: '请设置验证规则'
+    };
+    
+    // 添加到表格
+    const index = fieldCounter++;
+    const sourceOptions = '<option value="extracted">提取数据</option><option value="manual" selected>手工输入</option><option value="default">默认值</option>';
+    
+    const newRowHtml = `
+        <tr data-field-id="${index}">
+            <td>
+                <input type="text" class="form-control form-control-sm" value="${newField.name}" 
+                       onchange="updateField(${index}, 'name', this.value)">
+            </td>
+            <td>
+                <select class="form-select form-select-sm" onchange="updateField(${index}, 'type', this.value)">
+                    <option value="text" ${type === 'text' ? 'selected' : ''}>文本</option>
+                    <option value="number" ${type === 'number' ? 'selected' : ''}>数字</option>
+                    <option value="date" ${type === 'date' ? 'selected' : ''}>日期</option>
+                    <option value="select" ${type === 'select' ? 'selected' : ''}>选择</option>
+                    <option value="checkbox" ${type === 'checkbox' ? 'selected' : ''}>复选</option>
+                    <option value="textarea" ${type === 'textarea' ? 'selected' : ''}>多行</option>
+                    <option value="file" ${type === 'file' ? 'selected' : ''}>文件</option>
+                </select>
+            </td>
+            <td class="text-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" ${required ? 'checked' : ''} 
+                           onchange="updateField(${index}, 'required', this.checked)">
+                </div>
+            </td>
+            <td>
+                <select class="form-select form-select-sm" onchange="updateField(${index}, 'source', this.value)">
+                    ${sourceOptions}
+                </select>
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" value="${newField.validation}" 
+                       onchange="updateField(${index}, 'validation', this.value)">
+            </td>
+            <td class="text-center">
+                <button class="btn btn-outline-danger btn-sm" onclick="removeField(${index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `;
+    
+    $('#formFieldsBody').append(newRowHtml);
+    
+    // 清空模态框
+    $('#fieldName').val('');
+    $('#fieldType').val('text');
+    $('#fieldRequired').prop('checked', false);
+    $('#fieldOptionsList').val('');
+    $('#fieldOptions').hide();
+    
+    $('#addFieldModal').modal('hide');
+    showSuccessMessage('自定义字段添加成功');
+}
+
+function previewForm() {
+    showLoading('正在生成表单预览...');
+    
+    setTimeout(function() {
+        hideLoading();
+        
+        const previewHtml = generateFormPreview();
+        $('#formPreviewModalContent').html(previewHtml);
+        $('#formPreviewModal').modal('show');
+    }, 1500);
+}
+
+function generateFormPreview() {
+    const layout = $('#formLayout').val();
+    const style = $('#formStyle').val();
+    
+    let formHtml = `
+        <div class="form-preview ${style}-style">
+            <h5 class="mb-4">物料采购申请表</h5>
+    `;
+    
+    // 获取表单字段
+    const fields = [];
+    $('#formFieldsBody tr').each(function() {
+        const row = $(this);
+        fields.push({
+            name: row.find('input[type="text"]').first().val(),
+            type: row.find('select').first().val(),
+            required: row.find('input[type="checkbox"]').is(':checked')
+        });
+    });
+    
+    // 根据布局生成预览
+    if (layout === 'two_columns') {
+        formHtml += '<div class="row">';
+        fields.forEach(function(field, index) {
+            const colClass = index % 2 === 0 ? 'col-md-6' : 'col-md-6';
+            formHtml += `
+                <div class="${colClass}">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            ${field.name} ${field.required ? '<span class="text-danger">*</span>' : ''}
+                        </label>
+                        ${generateFieldPreview(field)}
+                    </div>
+                </div>
+            `;
+        });
+        formHtml += '</div>';
+    } else {
+        fields.forEach(function(field) {
+            formHtml += `
+                <div class="mb-3">
+                    <label class="form-label">
+                        ${field.name} ${field.required ? '<span class="text-danger">*</span>' : ''}
+                    </label>
+                    ${generateFieldPreview(field)}
+                </div>
+            `;
+        });
+    }
+    
+    formHtml += `
+            <div class="text-end mt-4">
+                <button type="button" class="btn btn-secondary me-2">取消</button>
+                <button type="button" class="btn btn-primary">提交申请</button>
+            </div>
+        </div>
+    `;
+    
+    return formHtml;
+}
+
+function generateFieldPreview(field) {
+    switch (field.type) {
+        case 'text':
+            return '<input type="text" class="form-control" placeholder="请输入..." disabled>';
+        case 'number':
+            return '<input type="number" class="form-control" placeholder="请输入数值..." disabled>';
+        case 'date':
+            return '<input type="date" class="form-control" disabled>';
+        case 'select':
+            return '<select class="form-select" disabled><option>请选择...</option></select>';
+        case 'checkbox':
+            return '<div class="form-check"><input class="form-check-input" type="checkbox" disabled><label class="form-check-label">选项1</label></div>';
+        case 'textarea':
+            return '<textarea class="form-control" rows="3" placeholder="请输入详细信息..." disabled></textarea>';
+        case 'file':
+            return '<input type="file" class="form-control" disabled>';
+        default:
+            return '<input type="text" class="form-control" disabled>';
+    }
+}
+
+function generateForms() {
+    collectFormConfig();
+    
+    // 显示进度
+    $('#generationProgress').show();
+    
+    // 开始生成表单
+    simulateFormGeneration();
+}
+
+function collectFormConfig() {
+    formConfig = {
+        template: $('input[name="formTemplate"]:checked').val(),
+        layout: $('#formLayout').val(),
+        style: $('#formStyle').val(),
+        submit_behavior: $('#submitBehavior').val(),
+        validation_mode: $('#validationMode').val(),
+        auto_fill: $('#enableAutoFill').is(':checked'),
+        suggestions: $('#enableSuggestions').is(':checked'),
+        validation: $('#enableValidation').is(':checked'),
+        fill_confidence: parseFloat($('#fillConfidence').val()),
+        fields: []
+    };
+    
+    // 收集字段配置
+    $('#formFieldsBody tr').each(function() {
+        const row = $(this);
+        formConfig.fields.push({
+            name: row.find('input[type="text"]').first().val(),
+            type: row.find('select').first().val(),
+            required: row.find('input[type="checkbox"]').is(':checked'),
+            source: row.find('select').eq(1).val(),
+            validation: row.find('input[type="text"]').eq(1).val()
+        });
+    });
+}
+
+function simulateFormGeneration() {
+    const totalForms = 1180;
+    let generated = 0;
+    let errors = 0;
+    
+    const interval = setInterval(function() {
+        const batchSize = Math.floor(Math.random() * 40) + 20;
+        generated += batchSize;
+        
+        if (Math.random() < 0.03) { // 3% 错误率
+            errors += Math.floor(Math.random() * 2) + 1;
+        }
+        
+        if (generated >= totalForms) {
+            generated = totalForms;
+            clearInterval(interval);
+            
+            setTimeout(function() {
+                // 保存表单生成结果到会话
+                saveGeneratedForms(generated, errors, function() {
+                    // 成功保存后跳转到匹配页面
+                    showSuccessMessage('表单生成完成！');
+                    setTimeout(function() {
+                        window.location.href = '/matching';
+                    }, 1500);
+                });
+            }, 500);
+        }
+        
+        const percentage = Math.floor((generated / totalForms) * 100);
+        const pending = totalForms - generated;
+        
+        $('#generationPercent').text(percentage + '%');
+        $('#generationBar').css('width', percentage + '%');
+        $('#generatedCount').text(generated);
+        $('#pendingCount').text(pending);
+        $('#errorCount').text(errors);
+        
+    }, 150);
+}
+
+function saveGeneratedForms(generatedCount, errorCount, callback) {
+    // 生成模拟的表单数据
+    const generatedForms = [];
+    for (let i = 0; i < Math.min(generatedCount, 50); i++) {
+        generatedForms.push({
+            id: i + 1,
+            form_name: `表单${i + 1}`,
+            template_type: formConfig.template || '标准采购表单',
+            fields: formConfig.fields || [],
+            generated_time: new Date().toISOString(),
+            status: Math.random() > 0.05 ? 'generated' : 'error'
+        });
+    }
+    
+    // 通过AJAX保存到会话
+    $.ajax({
+        url: '/save_generated_forms',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            forms: generatedForms,
+            total_generated: generatedCount,
+            total_errors: errorCount,
+            config: formConfig
+        }),
+        success: function(response) {
+            console.log('表单生成结果已保存到会话');
+            if (callback) {
+                callback();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('保存表单生成结果失败:', error);
+            if (callback) {
+                callback(); // 即使失败也要调用回调，避免页面卡住
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

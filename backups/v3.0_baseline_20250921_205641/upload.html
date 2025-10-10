@@ -1,0 +1,553 @@
+{% extends "base.html" %}
+
+{% block title %}数据导入 - 物料主数据管理智能应用{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">数据导入</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-upload text-primary"></i> 数据导入
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 导入方式选择 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3">选择数据来源</h6>
+                        <div class="btn-group" role="group" aria-label="导入方式">
+                            <input type="radio" class="btn-check" name="importMethod" id="fileImport" value="file" checked>
+                            <label class="btn btn-outline-primary" for="fileImport">
+                                <i class="fas fa-file-excel"></i> 文件导入
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="importMethod" id="dbImport" value="database">
+                            <label class="btn btn-outline-primary" for="dbImport">
+                                <i class="fas fa-database"></i> 数据库连接
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="importMethod" id="apiImport" value="api">
+                            <label class="btn btn-outline-primary" for="apiImport">
+                                <i class="fas fa-cloud"></i> API接口
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文件上传区域 -->
+                <div id="fileImportSection" class="import-section">
+                    <div class="upload-zone border-2 border-dashed border-primary rounded p-4 text-center" 
+                         ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                        <h5>拖拽文件到此处或点击选择文件</h5>
+                        <p class="text-muted mb-3">支持 Excel (.xlsx, .xls)、CSV (.csv)、JSON (.json) 格式</p>
+                        <input type="file" id="fileInput" class="d-none" accept=".xlsx,.xls,.csv,.json" onchange="handleFileSelect(event)">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-folder-open"></i> 选择文件
+                        </button>
+                    </div>
+                    
+                    <!-- 文件信息显示 -->
+                    <div id="fileInfo" class="mt-3 d-none">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> 文件信息</h6>
+                            <p class="mb-1"><strong>文件名：</strong><span id="fileName"></span></p>
+                            <p class="mb-1"><strong>数据行数：</strong><span id="fileRows"></span></p>
+                            <p class="mb-0"><strong>字段列表：</strong><span id="fileColumns"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数据库连接区域 -->
+                <div id="dbImportSection" class="import-section d-none">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dbType" class="form-label">数据库类型</label>
+                                <select class="form-select" id="dbType">
+                                    <option value="mysql">MySQL</option>
+                                    <option value="postgresql">PostgreSQL</option>
+                                    <option value="oracle">Oracle</option>
+                                    <option value="mongodb">MongoDB</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dbHost" class="form-label">主机地址</label>
+                                <input type="text" class="form-control" id="dbHost" placeholder="localhost">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dbPort" class="form-label">端口</label>
+                                <input type="number" class="form-control" id="dbPort" placeholder="3306">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dbName" class="form-label">数据库名</label>
+                                <input type="text" class="form-control" id="dbName" placeholder="database_name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dbUser" class="form-label">用户名</label>
+                                <input type="text" class="form-control" id="dbUser" placeholder="username">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dbPassword" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="dbPassword" placeholder="password">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="dbQuery" class="form-label">查询语句</label>
+                                <textarea class="form-control" id="dbQuery" rows="3" 
+                                          placeholder="SELECT * FROM materials WHERE status = 'pending'"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" onclick="testDbConnection()">
+                        <i class="fas fa-plug"></i> 测试连接
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="loadDbData()">
+                        <i class="fas fa-download"></i> 加载数据
+                    </button>
+                </div>
+
+                <!-- API接口区域 -->
+                <div id="apiImportSection" class="import-section d-none">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="apiUrl" class="form-label">API地址</label>
+                                <input type="url" class="form-control" id="apiUrl" 
+                                       placeholder="https://api.example.com/materials">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="apiMethod" class="form-label">请求方法</label>
+                                <select class="form-select" id="apiMethod">
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="apiTimeout" class="form-label">超时时间(秒)</label>
+                                <input type="number" class="form-control" id="apiTimeout" value="30">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="apiHeaders" class="form-label">请求头 (JSON格式)</label>
+                                <textarea class="form-control" id="apiHeaders" rows="3" 
+                                          placeholder='{"Authorization": "Bearer your_token", "Content-Type": "application/json"}'></textarea>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="apiParams" class="form-label">请求参数 (JSON格式)</label>
+                                <textarea class="form-control" id="apiParams" rows="3" 
+                                          placeholder='{"status": "pending", "limit": 1000}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" onclick="testApiConnection()">
+                        <i class="fas fa-vial"></i> 测试API
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="loadApiData()">
+                        <i class="fas fa-download"></i> 加载数据
+                    </button>
+                </div>
+
+                <!-- 数据预览区域 -->
+                <div id="dataPreview" class="mt-4 d-none">
+                    <h6 class="fw-bold mb-3">数据预览</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered" id="previewTable">
+                            <thead class="table-light">
+                                <!-- 动态生成表头 -->
+                            </thead>
+                            <tbody>
+                                <!-- 动态生成数据行 -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="button" class="btn btn-success" onclick="proceedToExtraction()">
+                            <i class="fas fa-arrow-right"></i> 下一步：参数提取
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右侧帮助信息 -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-lightbulb text-warning"></i> 导入说明
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="helpAccordion">
+                    <!-- 文件导入说明 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="fileHelp">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#fileHelpContent">
+                                <i class="fas fa-file-excel text-success me-2"></i> 文件导入
+                            </button>
+                        </h2>
+                        <div id="fileHelpContent" class="accordion-collapse collapse show" 
+                             data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success"></i> 支持Excel (.xlsx, .xls)格式</li>
+                                    <li><i class="fas fa-check text-success"></i> 支持CSV (.csv)格式</li>
+                                    <li><i class="fas fa-check text-success"></i> 支持JSON (.json)格式</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 文件大小限制：16MB</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 建议数据量：&lt;10万条</li>
+                                </ul>
+                                <div class="alert alert-info alert-sm">
+                                    <strong>建议格式：</strong>第一行为字段名，后续行为数据内容
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 数据库连接说明 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="dbHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#dbHelpContent">
+                                <i class="fas fa-database text-primary me-2"></i> 数据库连接
+                            </button>
+                        </h2>
+                        <div id="dbHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success"></i> MySQL/PostgreSQL</li>
+                                    <li><i class="fas fa-check text-success"></i> Oracle/MongoDB</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 需要提供数据库连接信息</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 支持自定义SQL查询</li>
+                                </ul>
+                                <div class="alert alert-warning alert-sm">
+                                    <strong>注意：</strong>请确保数据库连接安全，建议使用只读账户
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- API接口说明 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="apiHelp">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#apiHelpContent">
+                                <i class="fas fa-cloud text-info me-2"></i> API接口
+                            </button>
+                        </h2>
+                        <div id="apiHelpContent" class="accordion-collapse collapse" 
+                             data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success"></i> 支持RESTful API</li>
+                                    <li><i class="fas fa-check text-success"></i> 支持GET/POST方法</li>
+                                    <li><i class="fas fa-check text-success"></i> 支持认证头设置</li>
+                                    <li><i class="fas fa-info-circle text-info"></i> 返回数据需为JSON格式</li>
+                                </ul>
+                                <div class="alert alert-info alert-sm">
+                                    <strong>示例返回格式：</strong>
+                                    <code>{"data": [{"name": "产品A", "spec": "100g"}]}</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 字段映射说明 -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-map text-info"></i> 字段映射
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">系统需要以下字段进行智能处理：</p>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>目标字段</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>asset_name</code></td>
+                            <td>物料名称</td>
+                        </tr>
+                        <tr>
+                            <td><code>spec_model</code></td>
+                            <td>规格型号</td>
+                        </tr>
+                        <tr>
+                            <td><code>manufacturer_name</code></td>
+                            <td>生产厂家</td>
+                        </tr>
+                        <tr>
+                            <td><code>medical_insurance_code</code></td>
+                            <td>医保编码</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-info alert-sm">
+                    <i class="fas fa-info-circle"></i> 下一步将进行字段映射配置
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let uploadedData = null;
+
+$(document).ready(function() {
+    // 导入方式切换
+    $('input[name="importMethod"]').change(function() {
+        $('.import-section').addClass('d-none');
+        $('#' + $(this).val() + 'ImportSection').removeClass('d-none');
+    });
+});
+
+// 文件拖拽处理
+function dragOverHandler(ev) {
+    ev.preventDefault();
+    $(ev.target).closest('.upload-zone').addClass('border-success bg-light');
+}
+
+function dropHandler(ev) {
+    ev.preventDefault();
+    $(ev.target).closest('.upload-zone').removeClass('border-success bg-light');
+    
+    const files = ev.dataTransfer.files;
+    if (files.length > 0) {
+        handleFile(files[0]);
+    }
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        handleFile(file);
+    }
+}
+
+function handleFile(file) {
+    // 验证文件类型
+    const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                         'application/vnd.ms-excel', 'text/csv', 'application/json'];
+    
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv|json)$/i)) {
+        alert('不支持的文件类型，请选择 Excel、CSV 或 JSON 文件');
+        return;
+    }
+    
+    // 验证文件大小 (16MB)
+    if (file.size > 16 * 1024 * 1024) {
+        alert('文件太大，请选择小于 16MB 的文件');
+        return;
+    }
+    
+    showLoading('正在上传和处理文件...');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    $.ajax({
+        url: '/upload',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            hideLoading();
+            if (response.success) {
+                displayFileInfo(response);
+                displayDataPreview(response.preview_data, response.columns);
+                uploadedData = response;
+            }
+        },
+        error: function(xhr) {
+            hideLoading();
+            const error = JSON.parse(xhr.responseText);
+            alert('文件上传失败：' + error.error);
+        }
+    });
+}
+
+function displayFileInfo(fileData) {
+    $('#fileName').text(fileData.filename);
+    $('#fileRows').text(fileData.total_rows + ' 行');
+    $('#fileColumns').text(fileData.columns.join(', '));
+    $('#fileInfo').removeClass('d-none');
+}
+
+function displayDataPreview(data, columns) {
+    // 生成表头
+    let headerHtml = '<tr>';
+    columns.forEach(function(col) {
+        headerHtml += `<th>${col}</th>`;
+    });
+    headerHtml += '</tr>';
+    
+    // 生成数据行
+    let bodyHtml = '';
+    data.forEach(function(row) {
+        bodyHtml += '<tr>';
+        columns.forEach(function(col) {
+            bodyHtml += `<td>${row[col] || ''}</td>`;
+        });
+        bodyHtml += '</tr>';
+    });
+    
+    $('#previewTable thead').html(headerHtml);
+    $('#previewTable tbody').html(bodyHtml);
+    $('#dataPreview').removeClass('d-none');
+}
+
+function testDbConnection() {
+    showLoading('正在测试数据库连接...');
+    
+    const dbConfig = {
+        type: $('#dbType').val(),
+        host: $('#dbHost').val(),
+        port: parseInt($('#dbPort').val()) || 3306,
+        database: $('#dbName').val(),
+        username: $('#dbUser').val(),
+        password: $('#dbPassword').val()
+    };
+    
+    // 模拟连接测试
+    setTimeout(function() {
+        hideLoading();
+        if (dbConfig.host && dbConfig.database && dbConfig.username) {
+            showSuccessMessage('数据库连接测试成功');
+        } else {
+            alert('请填写完整的数据库连接信息');
+        }
+    }, 2000);
+}
+
+function loadDbData() {
+    const query = $('#dbQuery').val().trim();
+    if (!query) {
+        alert('请输入查询语句');
+        return;
+    }
+    
+    showLoading('正在从数据库加载数据...');
+    
+    // 模拟数据加载
+    setTimeout(function() {
+        hideLoading();
+        
+        // 模拟返回的数据
+        const mockData = [
+            {asset_name: '阿莫西林胶囊', spec_model: '0.25g*24粒', manufacturer_name: '华北制药'},
+            {asset_name: '头孢拉定胶囊', spec_model: '0.25g*12粒', manufacturer_name: '石药集团'}
+        ];
+        
+        const columns = ['asset_name', 'spec_model', 'manufacturer_name'];
+        
+        displayDataPreview(mockData, columns);
+        uploadedData = {
+            source: 'database',
+            total_rows: mockData.length,
+            columns: columns,
+            preview_data: mockData
+        };
+        
+        showSuccessMessage('数据库数据加载成功');
+    }, 3000);
+}
+
+function testApiConnection() {
+    const apiUrl = $('#apiUrl').val().trim();
+    if (!apiUrl) {
+        alert('请输入API地址');
+        return;
+    }
+    
+    showLoading('正在测试API连接...');
+    
+    // 模拟API测试
+    setTimeout(function() {
+        hideLoading();
+        showSuccessMessage('API连接测试成功');
+    }, 2000);
+}
+
+function loadApiData() {
+    const apiUrl = $('#apiUrl').val().trim();
+    if (!apiUrl) {
+        alert('请输入API地址');
+        return;
+    }
+    
+    showLoading('正在从API加载数据...');
+    
+    // 模拟API数据加载
+    setTimeout(function() {
+        hideLoading();
+        
+        // 模拟返回的数据
+        const mockData = [
+            {product_name: '胰岛素注射液', specification: '10ml', brand: '诺和诺德'},
+            {product_name: '血压计', specification: '电子式', brand: '欧姆龙'}
+        ];
+        
+        const columns = ['product_name', 'specification', 'brand'];
+        
+        displayDataPreview(mockData, columns);
+        uploadedData = {
+            source: 'api',
+            total_rows: mockData.length,
+            columns: columns,
+            preview_data: mockData
+        };
+        
+        showSuccessMessage('API数据加载成功');
+    }, 3000);
+}
+
+function proceedToExtraction() {
+    if (!uploadedData) {
+        alert('请先导入数据');
+        return;
+    }
+    
+    showLoading('正在跳转到参数提取页面...');
+    setTimeout(function() {
+        window.location.href = '/extract_parameters';
+    }, 1000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}错误 - MMP物料主数据管理系统{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        系统错误
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h1 class="display-4 text-danger">{{ error_code or '500' }}</h1>
+                        <h3 class="text-muted">{{ error_message or '系统出现了一个错误' }}</h3>
+                    </div>
+                    
+                    {% if error_details %}
+                    <div class="alert alert-light">
+                        <h6>错误详情：</h6>
+                        <p class="mb-0 font-monospace small">{{ error_details }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center">
+                        <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-1"></i>
+                            返回首页
+                        </a>
+                        <button onclick="history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            返回上一页
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <h5>常见解决方案：</h5>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-refresh fa-2x text-primary mb-2"></i>
+                                <h6>刷新页面</h6>
+                                <p class="small text-muted">有时候简单的刷新就能解决问题</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-upload fa-2x text-success mb-2"></i>
+                                <h6>重新上传数据</h6>
+                                <p class="small text-muted">确保数据文件格式正确</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-question-circle fa-2x text-info mb-2"></i>
+                                <h6>联系支持</h6>
+                                <p class="small text-muted">如果问题持续存在，请联系技术支持</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // 自动刷新功能（可选）
+    // setTimeout(function() {
+    //     window.location.reload();
+    // }, 30000); // 30秒后自动刷新
+});
+</script>
+{% endblock %}

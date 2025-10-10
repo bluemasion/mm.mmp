@@ -1,0 +1,553 @@
+{
+  "test_time": "2025-10-09T14:17:54.290264",
+  "total_tests": 13,
+  "results": [
+    {
+      "input": {
+        "name": "304不锈钢疏水器",
+        "spec": "DN25 PN16",
+        "difficulty": "medium"
+      },
+      "expected": {
+        "materials": [
+          "304",
+          "不锈钢"
+        ],
+        "category": "疏水阀"
+      },
+      "original": {
+        "category": "疏水阀",
+        "confidence": 50.5,
+        "time_ms": 25.11
+      },
+      "enhanced": {
+        "category": "疏水阀",
+        "confidence": 100.0,
+        "materials_detected": [
+          {
+            "detected_keyword": "304不锈钢",
+            "base_keyword": "304",
+            "weight": 0.9,
+            "category": "不锈钢",
+            "grade": "A",
+            "confidence": 0.9500000000000001
+          },
+          {
+            "detected_keyword": "不锈钢",
+            "base_keyword": "不锈钢",
+            "weight": 0.8,
+            "category": "不锈钢",
+            "grade": "B+",
+            "confidence": 0.9500000000000001
+          }
+        ],
+        "time_ms": 38.76
+      },
+      "improvement": {
+        "confidence_delta": 49.5,
+        "category_match": true,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "316L不锈钢法兰",
+        "spec": "DN100 PN16",
+        "difficulty": "medium"
+      },
+      "expected": {
+        "materials": [
+          "316L"
+        ],
+        "category": "法兰"
+      },
+      "original": {
+        "category": "取样器连接件",
+        "confidence": 58.5,
+        "time_ms": 21.13
+      },
+      "enhanced": {
+        "category": "带颈对焊法兰",
+        "confidence": 100.0,
+        "materials_detected": [
+          {
+            "detected_keyword": "316l不锈钢",
+            "base_keyword": "316L",
+            "weight": 0.95,
+            "category": "不锈钢",
+            "grade": "A+",
+            "confidence": 0.9500000000000001
+          }
+        ],
+        "time_ms": 29.07
+      },
+      "improvement": {
+        "confidence_delta": 41.5,
+        "category_match": false,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "321不锈钢三通",
+        "spec": "DN50×40×50",
+        "difficulty": "hard"
+      },
+      "expected": {
+        "materials": [
+          "321"
+        ],
+        "category": "三通"
+      },
+      "original": {
+        "category": "无缝三通",
+        "confidence": 63.0,
+        "time_ms": 25.71
+      },
+      "enhanced": {
+        "category": "管道配件",
+        "confidence": 100.0,
+        "materials_detected": [
+          {
+            "detected_keyword": "321不锈钢",
+            "base_keyword": "321",
+            "weight": 0.9,
+            "category": "不锈钢",
+            "grade": "A",
+            "confidence": 0.9500000000000001
+          },
+          {
+            "detected_keyword": "不锈钢",
+            "base_keyword": "不锈钢",
+            "weight": 0.8,
+            "category": "不锈钢",
+            "grade": "B+",
+            "confidence": 0.9500000000000001
+          }
+        ],
+        "time_ms": 24.72
+      },
+      "improvement": {
+        "confidence_delta": 37.0,
+        "category_match": false,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "碳钢螺塞",
+        "spec": "M20×2.5",
+        "difficulty": "easy"
+      },
+      "expected": {
+        "materials": [
+          "碳钢"
+        ],
+        "category": "紧固件"
+      },
+      "original": {
+        "category": "紧固件",
+        "confidence": 50.5,
+        "time_ms": 20.12
+      },
+      "enhanced": {
+        "category": "紧固件",
+        "confidence": 97.5,
+        "materials_detected": [
+          {
+            "detected_keyword": "碳钢",
+            "base_keyword": "碳钢",
+            "weight": 0.75,
+            "category": "碳钢",
+            "grade": "B",
+            "confidence": 0.9500000000000001
+          }
+        ],
+        "time_ms": 22.71
+      },
+      "improvement": {
+        "confidence_delta": 47.0,
+        "category_match": true,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "20#钢管道",
+        "spec": "DN80 PN25",
+        "difficulty": "medium"
+      },
+      "expected": {
+        "materials": [
+          "20#"
+        ],
+        "category": "管道"
+      },
+      "original": {
+        "category": "管道配件",
+        "confidence": 50.5,
+        "time_ms": 16.75
+      },
+      "enhanced": {
+        "category": "管道配件",
+        "confidence": 79.5,
+        "materials_detected": [
+          {
+            "detected_keyword": "20#钢",
+            "base_keyword": "20#",
+            "weight": 0.85,
+            "category": "碳钢",
+            "grade": "A-",
+            "confidence": 0.9500000000000001
+          }
+        ],
+        "time_ms": 18.19
+      },
+      "improvement": {
+        "confidence_delta": 29.0,
+        "category_match": false,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "Q235法兰",
+        "spec": "DN150 PN16",
+        "difficulty": "medium"
+      },
+      "expected": {
+        "materials": [
+          "Q235"
+        ],
+        "category": "法兰"
+      },
+      "original": {
+        "category": "取样器连接件",
+        "confidence": 58.5,
+        "time_ms": 17.37
+      },
+      "enhanced": {
+        "category": "带颈对焊法兰",
+        "confidence": 82.0,
+        "materials_detected": [
+          {
+            "detected_keyword": "Q235",
+            "base_keyword": "Q235",
+            "weight": 0.8,
+            "category": "碳钢",
+            "grade": "B+",
+            "confidence": 0.8
+          }
+        ],
+        "time_ms": 19.74
+      },
+      "improvement": {
+        "confidence_delta": 23.5,
+        "category_match": false,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "黄铜球阀",
+        "spec": "DN50 PN16",
+        "difficulty": "easy"
+      },
+      "expected": {
+        "materials": [
+          "黄铜"
+        ],
+        "category": "球阀"
+      },
+      "original": {
+        "category": "球阀",
+        "confidence": 66.5,
+        "time_ms": 16.73
+      },
+      "enhanced": {
+        "category": "球阀",
+        "confidence": 100.0,
+        "materials_detected": [
+          {
+            "detected_keyword": "黄铜",
+            "base_keyword": "黄铜",
+            "weight": 0.75,
+            "category": "铜合金",
+            "grade": "B",
+            "confidence": 0.9
+          }
+        ],
+        "time_ms": 19.08
+      },
+      "improvement": {
+        "confidence_delta": 33.5,
+        "category_match": true,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "紫铜管接头",
+        "spec": "1/2\"NPT",
+        "difficulty": "medium"
+      },
+      "expected": {
+        "materials": [
+          "紫铜"
+        ],
+        "category": "接头"
+      },
+      "original": {
+        "category": "取样器连接件",
+        "confidence": 58.5,
+        "time_ms": 16.22
+      },
+      "enhanced": {
+        "category": "取样器连接件",
+        "confidence": 68.5,
+        "materials_detected": [
+          {
+            "detected_keyword": "紫铜",
+            "base_keyword": "紫铜",
+            "weight": 0.75,
+            "category": "铜合金",
+            "grade": "B",
+            "confidence": 0.9
+          },
+          {
+            "detected_keyword": "铜",
+            "base_keyword": "黄铜",
+            "weight": 0.75,
+            "category": "铜合金",
+            "grade": "B",
+            "confidence": 0.9
+          }
+        ],
+        "time_ms": 18.71
+      },
+      "improvement": {
+        "confidence_delta": 10.0,
+        "category_match": false,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "镀锌管接头",
+        "spec": "1/2寸",
+        "difficulty": "medium"
+      },
+      "expected": {
+        "materials": [
+          "镀锌"
+        ],
+        "category": "接头"
+      },
+      "original": {
+        "category": "镀锌管",
+        "confidence": 66.5,
+        "time_ms": 16.86
+      },
+      "enhanced": {
+        "category": "取样器连接件",
+        "confidence": 63.5,
+        "materials_detected": [
+          {
+            "detected_keyword": "镀锌",
+            "base_keyword": "镀锌",
+            "weight": 0.7,
+            "category": "表面处理",
+            "grade": "B",
+            "confidence": 0.9
+          }
+        ],
+        "time_ms": 19.13
+      },
+      "improvement": {
+        "confidence_delta": -3.0,
+        "category_match": false,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "镀镍螺栓",
+        "spec": "M16×50",
+        "difficulty": "hard"
+      },
+      "expected": {
+        "materials": [
+          "镀镍"
+        ],
+        "category": "螺栓"
+      },
+      "original": {
+        "category": "螺栓",
+        "confidence": 66.5,
+        "time_ms": 15.67
+      },
+      "enhanced": {
+        "category": "螺栓",
+        "confidence": 100.0,
+        "materials_detected": [
+          {
+            "detected_keyword": "镀镍",
+            "base_keyword": "镀镍",
+            "weight": 0.65,
+            "category": "表面处理",
+            "grade": "B-",
+            "confidence": 0.9
+          }
+        ],
+        "time_ms": 18.53
+      },
+      "improvement": {
+        "confidence_delta": 33.5,
+        "category_match": true,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "304不锈钢镀锌法兰",
+        "spec": "DN80 PN16",
+        "difficulty": "hard"
+      },
+      "expected": {
+        "materials": [
+          "304",
+          "镀锌"
+        ],
+        "category": "法兰"
+      },
+      "original": {
+        "category": "取样器连接件",
+        "confidence": 58.5,
+        "time_ms": 23.05
+      },
+      "enhanced": {
+        "category": "带颈对焊法兰",
+        "confidence": 100.0,
+        "materials_detected": [
+          {
+            "detected_keyword": "304不锈钢",
+            "base_keyword": "304",
+            "weight": 0.9,
+            "category": "不锈钢",
+            "grade": "A",
+            "confidence": 0.9500000000000001
+          },
+          {
+            "detected_keyword": "不锈钢",
+            "base_keyword": "不锈钢",
+            "weight": 0.8,
+            "category": "不锈钢",
+            "grade": "B+",
+            "confidence": 0.9500000000000001
+          },
+          {
+            "detected_keyword": "镀锌",
+            "base_keyword": "镀锌",
+            "weight": 0.7,
+            "category": "表面处理",
+            "grade": "B",
+            "confidence": 0.9500000000000001
+          }
+        ],
+        "time_ms": 18.04
+      },
+      "improvement": {
+        "confidence_delta": 41.5,
+        "category_match": false,
+        "material_detection_success": true
+      }
+    },
+    {
+      "input": {
+        "name": "疏水器",
+        "spec": "DN25",
+        "difficulty": "easy"
+      },
+      "expected": {
+        "materials": [],
+        "category": "疏水阀"
+      },
+      "original": {
+        "category": "疏水阀",
+        "confidence": 74.5,
+        "time_ms": 16.63
+      },
+      "enhanced": {
+        "category": "疏水阀",
+        "confidence": 74.5,
+        "materials_detected": [],
+        "time_ms": 17.4
+      },
+      "improvement": {
+        "confidence_delta": 0.0,
+        "category_match": true,
+        "material_detection_success": false
+      }
+    },
+    {
+      "input": {
+        "name": "球阀",
+        "spec": "DN50",
+        "difficulty": "easy"
+      },
+      "expected": {
+        "materials": [],
+        "category": "球阀"
+      },
+      "original": {
+        "category": "球阀",
+        "confidence": 100.0,
+        "time_ms": 16.28
+      },
+      "enhanced": {
+        "category": "球阀",
+        "confidence": 100.0,
+        "materials_detected": [],
+        "time_ms": 17.33
+      },
+      "improvement": {
+        "confidence_delta": 0.0,
+        "category_match": true,
+        "material_detection_success": false
+      }
+    }
+  ],
+  "statistics": {
+    "total_tests": 13,
+    "original_algorithm": {
+      "avg_confidence": 63.3,
+      "correct_classifications": 6,
+      "avg_time_ms": 19.05
+    },
+    "enhanced_algorithm": {
+      "avg_confidence": 89.7,
+      "correct_classifications": 6,
+      "material_detections": 11,
+      "avg_time_ms": 21.65
+    },
+    "improvements": {
+      "avg_confidence_gain": 26.4,
+      "accuracy_improvement": 0,
+      "tests_with_gains": 10
+    },
+    "difficulty_analysis": {
+      "easy": {
+        "total": 4,
+        "improved": 2
+      },
+      "medium": {
+        "total": 6,
+        "improved": 5
+      },
+      "hard": {
+        "total": 3,
+        "improved": 3
+      }
+    }
+  }
+}

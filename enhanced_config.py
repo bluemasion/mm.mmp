@@ -6,16 +6,16 @@ MASTER_DATA_PATH = 'data/e4p9.xlsx - Sheet1.csv'
 NEW_DATA_PATH = 'data/e4.xlsx - Sheet1.csv'
 OUTPUT_RESULT_PATH = 'data/batch_matching_results.csv'
 
-# 基础匹配规则
+# 基础匹配规则 - 修正为实际数据库字段
 MATCH_RULES = {
     'master_fields': {
-        'id': '商品操作码',
-        'exact': ['生产厂家', '医保代码'],
-        'fuzzy': ['产品名称', '产品规格']
+        'id': 'material_code',
+        'exact': ['brand', 'model'],  # 使用实际存在的字段
+        'fuzzy': ['material_name', 'specification']  # 使用实际存在的字段
     },
     'new_item_fields': {
         'id': '资产代码',
-        'exact': ['生产厂家名称', '医保码'],
+        'exact': ['生产厂家名称', '型号'],  # 映射到实际字段
         'fuzzy': ['资产名称', '规格型号']
     }
 }

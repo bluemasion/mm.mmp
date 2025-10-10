@@ -7,6 +7,93 @@
 <li class="breadcrumb-item active">参数提取</li>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* 模态框自定义样式 - 确保PC端有合适的大小 */
+@media (min-width: 992px) {
+    .extract-preview-modal .modal-dialog {
+        max-width: 90vw !important;
+        width: 90vw !important;
+        height: 90vh;
+    }
+    
+    .extract-preview-modal .modal-content {
+        height: 90vh;
+    }
+    
+    .extract-preview-modal .modal-body {
+        max-height: calc(90vh - 120px);
+        overflow-y: auto;
+    }
+}
+
+/* 确保模态框层级正确 */
+.extract-preview-modal {
+    z-index: 1055 !important;
+}
+
+.extract-preview-modal .modal-dialog {
+    position: relative;
+    z-index: 1060 !important;
+}
+
+.extract-preview-modal .modal-content {
+    position: relative;
+    z-index: 1061 !important;
+    background-color: white !important;
+}
+
+/* 确保模态框内的所有元素都可以点击 */
+.extract-preview-modal .modal-content * {
+    position: relative;
+    z-index: auto;
+    pointer-events: auto !important;
+}
+
+/* 确保表格和按钮可以正常交互 */
+.extract-preview-modal .table,
+.extract-preview-modal .btn,
+.extract-preview-modal input[type="checkbox"],
+.extract-preview-modal .form-control,
+.extract-preview-modal .table-responsive,
+.extract-preview-modal tbody tr,
+.extract-preview-modal tbody td {
+    pointer-events: auto !important;
+    position: relative;
+}
+
+/* 确保模态框不被遮挡 */
+.extract-preview-modal .modal-dialog {
+    margin: 1.75rem auto !important;
+}
+
+/* 防止背景影响点击 */
+.extract-preview-modal.show .modal-backdrop {
+    pointer-events: none !important;
+}
+
+.extract-preview-modal.show {
+    pointer-events: auto !important;
+}
+
+/* 确保关闭按钮可以点击 */
+.extract-preview-modal .btn-close,
+.extract-preview-modal .modal-header button {
+    pointer-events: auto !important;
+    z-index: 1065 !important;
+}
+
+/* 背景遮罩层级 */
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
@@ -283,6 +370,31 @@
                     </div>
                 </div>
 
+                <!-- 智能推荐区域 -->
+                <div class="card shadow-sm mb-4 bg-light">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-brain"></i> 智能分类推荐
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="small mb-3">基于物料名称、规格等信息，为您智能推荐可能的分类</p>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-success" onclick="getIntelligentRecommendations()">
+                                <i class="fas fa-magic"></i> 获取智能推荐
+                            </button>
+                        </div>
+                        
+                        <!-- 推荐结果显示区域 -->
+                        <div id="recommendationResults" class="mt-3" style="display: none;">
+                            <h6 class="text-dark">推荐结果：</h6>
+                            <div id="recommendationList" class="list-group">
+                                <!-- 动态填充推荐结果 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 操作按钮 -->
                 <div class="d-flex justify-content-between">
                     <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
@@ -424,8 +536,8 @@
 </div>
 
 <!-- 预览模态框 -->
-<div class="modal fade" id="extractionPreviewModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
+<div class="modal fade extract-preview-modal" id="extractionPreviewModal" tabindex="-1" data-bs-backdrop="true" data-bs-keyboard="true">
+    <div class="modal-dialog modal-fullscreen-lg-down modal-dialog-scrollable" style="max-width: 95vw;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">参数提取预览</h5>
@@ -602,7 +714,33 @@ function previewExtraction() {
         const previewData = generatePreviewData();
         displayExtractionPreview(previewData);
         
-        $('#extractionPreviewModal').modal('show');
+        // 显示模态框 - 使用Bootstrap 5原生API
+        const modalElement = document.getElementById('extractionPreviewModal');
+        
+        // 移除可能存在的旧实例
+        const existingModal = bootstrap.Modal.getInstance(modalElement);
+        if (existingModal) {
+            existingModal.dispose();
+        }
+        
+        // 创建新的模态框实例
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: true,
+            focus: true
+        });
+        
+        // 确保模态框内容可以交互
+        modalElement.addEventListener('shown.bs.modal', function () {
+            modalElement.style.pointerEvents = 'auto';
+            const modalContent = modalElement.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.pointerEvents = 'auto';
+                modalContent.style.zIndex = '1061';
+            }
+        });
+        
+        modal.show();
     }, 2000);
 }
 
@@ -699,7 +837,11 @@ function startExtraction() {
     }
     
     // 隐藏预览模态框
-    $('#extractionPreviewModal').modal('hide');
+    const modalElement = document.getElementById('extractionPreviewModal');
+    const modal = bootstrap.Modal.getInstance(modalElement);
+    if (modal) {
+        modal.hide();
+    }
     
     // 收集配置
     collectExtractionConfig();
@@ -781,6 +923,212 @@ function saveExtractionResults(processedCount, errorCount) {
             console.error('保存提取结果失败:', error);
         }
     });
+}
+
+// ==================== 智能推荐功能 ====================
+
+function getIntelligentRecommendations() {
+    showLoading('正在获取智能推荐...');
+    
+    // 从上传的数据中提取物料信息用于推荐
+    const sampleMaterials = extractSampleMaterialsForRecommendation();
+    
+    if (sampleMaterials.length === 0) {
+        hideLoading();
+        showErrorMessage('没有找到可用于推荐的物料数据');
+        return;
+    }
+    
+    // 批量获取推荐
+    $.ajax({
+        url: '/api/batch_recommend',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            materials: sampleMaterials.slice(0, 5) // 最多推荐5个物料
+        }),
+        success: function(response) {
+            hideLoading();
+            if (response.success) {
+                displayRecommendations(response.results);
+            } else {
+                showErrorMessage(response.error || '获取推荐失败');
+            }
+        },
+        error: function(xhr, status, error) {
+            hideLoading();
+            console.error('获取智能推荐失败:', error);
+            showErrorMessage('获取推荐失败，请重试');
+        }
+    });
+}
+
+function extractSampleMaterialsForRecommendation() {
+    // 从预览数据中提取样本物料信息
+    const materials = [];
+    
+    // 尝试从全局变量获取上传的数据
+    if (window.uploadedData && window.uploadedData.data) {
+        const data = window.uploadedData.data;
+        const headers = window.uploadedData.headers;
+        
+        // 查找物料名称和规格字段的索引
+        const nameIndex = headers.findIndex(h => 
+            h.includes('名称') || h.includes('产品') || h.includes('物料')
+        );
+        const specIndex = headers.findIndex(h => 
+            h.includes('规格') || h.includes('型号') || h.includes('spec')
+        );
+        const manufacturerIndex = headers.findIndex(h => 
+            h.includes('厂家') || h.includes('生产商') || h.includes('制造商')
+        );
+        
+        // 提取前几行作为样本
+        for (let i = 0; i < Math.min(data.length, 5); i++) {
+            const row = data[i];
+            const material = {
+                name: nameIndex >= 0 ? row[nameIndex] : `物料${i + 1}`,
+                spec: specIndex >= 0 ? row[specIndex] : '',
+                manufacturer: manufacturerIndex >= 0 ? row[manufacturerIndex] : ''
+            };
+            
+            if (material.name && material.name.trim()) {
+                materials.push(material);
+            }
+        }
+    }
+    
+    // 如果没有找到数据，使用模拟数据
+    if (materials.length === 0) {
+        materials.push(
+            { name: '示例物料A', spec: '规格1', manufacturer: '厂家A' },
+            { name: '示例物料B', spec: '规格2', manufacturer: '厂家B' }
+        );
+    }
+    
+    return materials;
+}
+
+function displayRecommendations(results) {
+    const $recommendationResults = $('#recommendationResults');
+    const $recommendationList = $('#recommendationList');
+    
+    $recommendationList.empty();
+    
+    if (!results || results.length === 0) {
+        $recommendationList.html('<p class="text-muted">暂无推荐结果</p>');
+        $recommendationResults.show();
+        return;
+    }
+    
+    let totalRecommendations = 0;
+    
+    results.forEach((result, index) => {
+        if (result.recommendations && result.recommendations.length > 0) {
+            totalRecommendations++;
+            
+            const material = result.material_info;
+            const recommendations = result.recommendations.slice(0, 3); // 最多显示3个推荐
+            
+            let cardHtml = `
+                <div class="card mb-3 border-light">
+                    <div class="card-header bg-light py-2">
+                        <h6 class="mb-0">
+                            <i class="fas fa-cube text-primary"></i> 
+                            ${material.name}
+                            ${material.spec ? `<small class="text-muted">(${material.spec})</small>` : ''}
+                        </h6>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="list-group list-group-flush">
+            `;
+            
+            recommendations.forEach((rec, recIndex) => {
+                const confidence = (rec.confidence * 100).toFixed(1);
+                const badgeClass = confidence >= 70 ? 'bg-success' : 
+                                 confidence >= 50 ? 'bg-warning' : 'bg-secondary';
+                
+                cardHtml += `
+                    <div class="list-group-item border-0 py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${rec.category_name}</strong>
+                                <br><small class="text-muted">${rec.reason}</small>
+                            </div>
+                            <span class="badge ${badgeClass}">${confidence}%</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cardHtml += `
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $recommendationList.append(cardHtml);
+        }
+    });
+    
+    if (totalRecommendations === 0) {
+        $recommendationList.html(`
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                未找到匹配的分类推荐，建议在后续步骤中手动选择分类。
+            </div>
+        `);
+    }
+    
+    $recommendationResults.show();
+    
+    // 滚动到推荐结果
+    $recommendationResults[0].scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'nearest' 
+    });
+}
+
+// 显示加载中
+function showLoading(message = '处理中...') {
+    // 简单的加载提示
+    if (!$('#loadingToast').length) {
+        $('body').append(`
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <div id="loadingToast" class="toast" role="alert">
+                    <div class="toast-body">
+                        <i class="fas fa-spinner fa-spin"></i> ${message}
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+    
+    $('#loadingToast .toast-body').html(`<i class="fas fa-spinner fa-spin"></i> ${message}`);
+    $('#loadingToast').toast('show');
+}
+
+// 隐藏加载中
+function hideLoading() {
+    $('#loadingToast').toast('hide');
+}
+
+// 显示错误消息
+function showErrorMessage(message) {
+    if (!$('#errorToast').length) {
+        $('body').append(`
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <div id="errorToast" class="toast bg-danger text-white" role="alert">
+                    <div class="toast-body">
+                        <i class="fas fa-exclamation-triangle"></i> ${message}
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+    
+    $('#errorToast .toast-body').html(`<i class="fas fa-exclamation-triangle"></i> ${message}`);
+    $('#errorToast').toast('show');
 }
 </script>
 {% endblock %}

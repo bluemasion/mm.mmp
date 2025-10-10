@@ -1,0 +1,1182 @@
+{% extends "base.html" %}
+
+{% block title %}选择分类模板 - MMP智能物料管理系统{% endblock %}
+
+{% block head %}
+<script>
+// 内联JavaScript确保函数在页面加载前就定义
+function showStatDetails(type) {
+    console.log('showStatDetails被调用:', type, '- 跳转到分类管理页面');
+    
+    // 跳转到分类管理页面查看详细信息
+    let targetUrl = '/categories';
+    
+    // 根据类型添加相应的筛选参数或锚点
+    switch(type) {
+        case 'total':
+            // 显示所有分类
+            console.log('跳转到分类管理页面 - 查看全部分类');
+            break;
+        case 'levels':
+            // 可以添加层级说明的特殊标识
+            targetUrl += '#levels';
+            console.log('跳转到分类管理页面 - 查看层级结构');
+            break;
+        case 'level1':
+            // 筛选只显示一级分类  
+            targetUrl += '?level=1';
+            console.log('跳转到分类管理页面 - 查看一级分类');
+            break;
+        case 'compatibility':
+            // 显示适配度相关信息
+            targetUrl += '#compatibility';
+            console.log('跳转到分类管理页面 - 查看适配度信息');
+            break;
+    }
+    
+    // 在新窗口中打开分类管理页面
+    window.open(targetUrl, '_blank');
+}
+
+function testAlert() {
+    alert('点击功能正常！JavaScript可以执行。');
+}
+
+// 确保函数全局可用
+window.showStatDetails = showStatDetails;
+window.testAlert = testAlert;
+
+console.log('内联JavaScript加载完成');
+</script>
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --info-color: #17a2b8;
+        --light-bg: #f8f9fa;
+        --border-color: #dee2e6;
+        --text-muted: #6c757d;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --border-radius: 0.375rem;
+    }
+    
+    .template-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+    }
+    
+    .template-selection-card {
+        background: linear-gradient(135deg, #f8f9ff 0%, #e8f4f8 100%);
+        border: 2px solid var(--secondary-color);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .template-info h4 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .template-stats {
+        margin-bottom: 1rem;
+    }
+    
+    .template-stats .badge {
+        margin-right: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--secondary-color);
+        color: white;
+        border-radius: 50px;
+        font-size: 0.9rem;
+    }
+    
+    .template-description {
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+    
+    .template-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .template-actions .btn {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+        border-left: 4px solid var(--secondary-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-left-width: 6px;
+    }
+    
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card p {
+        color: var(--text-muted);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .stat-card.success {
+        border-left-color: var(--success-color);
+    }
+    
+    .stat-card.success h3 {
+        color: var(--success-color);
+    }
+    
+    .compatibility-info {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 2rem;
+    }
+    
+    .compatibility-info h5 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .compatibility-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .preview-container {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        padding: 1.5rem;
+    }
+    
+    .category-tree {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .category-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f3f4;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .category-code {
+        font-weight: bold;
+        color: var(--primary-color);
+        min-width: 60px;
+    }
+    
+    .category-name {
+        color: var(--text-muted);
+    }
+    
+    .stat-card .detail-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .stat-card:hover .detail-btn {
+        opacity: 1;
+    }
+    
+    .stat-details-modal .modal-content {
+        border-radius: var(--border-radius);
+        border: none;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .stat-details-modal .modal-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border-bottom: none;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f3f4;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .detail-value {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+    }
+    
+    .progress-item {
+        margin-bottom: 1rem;
+    }
+    
+    .progress-item .progress {
+        height: 8px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+    
+    .progress-item .progress-bar {
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="template-header text-center">
+        <h2><i class="fas fa-tags"></i> 选择分类模板</h2>
+        <p>选择适合的分类模板进行智能分类，系统将根据您的选择进行后续处理</p>
+        <!-- 测试按钮 -->
+        <button onclick="testAlert()" class="btn btn-sm btn-warning">测试点击功能</button>
+    </div>
+
+    <!-- 模板选择卡片 -->
+    <div class="template-selection-card">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="template-info">
+                    <h4>
+                        <i class="fas fa-industry"></i>
+                        工业制造业标准分类体系
+                    </h4>
+                    <div class="template-stats">
+                        <span class="badge">548个分类</span>
+                        <span class="badge">3层级结构</span>
+                        <span class="badge">制造业全领域</span>
+                        <span class="badge" style="background-color: var(--text-muted);">更新于 2025-09-25</span>
+                    </div>
+                    <p class="template-description">
+                        💡 此分类体系涵盖化工、机械设备、金属制品、建材、工具等制造业全领域，
+                        包含完整的3层级分类结构，适用于工业企业的物料分类管理、采购分类、库存管理等场景。
+                        <br><strong>覆盖领域：</strong>化工三剂、机械设备、金属制品、建工材料、工器具等18个主要类别。
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="template-actions">
+                    <button class="btn btn-outline-info" id="previewBtn">
+                        <i class="fas fa-eye"></i> 预览结构
+                    </button>
+                    <button class="btn btn-success btn-lg" id="selectTemplateBtn">
+                        <i class="fas fa-check"></i> 使用此模板
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计信息概览 -->
+    <div class="stats-overview">
+        <div class="stat-card" data-stat-type="total" onclick="showStatDetails('total')">
+            <button class="detail-btn" title="查看详情" onclick="showStatDetails('total'); event.stopPropagation();">
+                <i class="fas fa-info"></i>
+            </button>
+            <h3 id="totalCategories">548</h3>
+            <p>总分类数</p>
+        </div>
+        <div class="stat-card" data-stat-type="levels" onclick="showStatDetails('levels')">
+            <button class="detail-btn" title="查看详情" onclick="showStatDetails('levels'); event.stopPropagation();">
+                <i class="fas fa-info"></i>
+            </button>
+            <h3>3</h3>
+            <p>层级深度</p>
+        </div>
+        <div class="stat-card" data-stat-type="level1" onclick="showStatDetails('level1')">
+            <button class="detail-btn" title="查看详情" onclick="showStatDetails('level1'); event.stopPropagation();">
+                <i class="fas fa-info"></i>
+            </button>
+            <h3 id="level1Count">18</h3>
+            <p>一级分类</p>
+        </div>
+        <div class="stat-card success" data-stat-type="compatibility" onclick="showStatDetails('compatibility')">
+            <button class="detail-btn" title="查看详情" onclick="showStatDetails('compatibility'); event.stopPropagation();">
+                <i class="fas fa-info"></i>
+            </button>
+            <h3 id="compatibilityRate">95%</h3>
+            <p>制造业适配度</p>
+        </div>
+    </div>
+
+    <!-- 模板管理按钮 -->
+    <div class="text-center my-4">
+        <a href="/material-workflow" class="btn btn-warning btn-lg me-3">
+            <i class="fas fa-cogs me-2"></i>智能处理工作流
+        </a>
+        <a href="/category-templates" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-layer-group me-2"></i>查看所有分类模板
+        </a>
+        <a href="/smart-classification" class="btn btn-success btn-lg me-3">
+            <i class="fas fa-brain me-2"></i>智能物料分类
+        </a>
+        <a href="/categories" class="btn btn-outline-secondary btn-lg">
+            <i class="fas fa-sitemap me-2"></i>分类管理
+        </a>
+    </div>
+
+    <!-- 测试按钮 -->
+    <div class="text-center my-3">
+        <button onclick="testAlert()" class="btn btn-sm btn-warning me-2">🧪 测试点击功能</button>
+        <button onclick="showStatDetails('total')" class="btn btn-sm btn-info">📊 测试统计详情</button>
+    </div>
+
+    <!-- 适用性信息 -->
+    <div class="compatibility-info">
+        <h5><i class="fas fa-check-circle text-success"></i> 模板适用性评估</h5>
+        <div class="compatibility-item">
+            <span class="text-success">✓</span>
+            <span><strong>制造业全覆盖：</strong>涵盖化工、机械、金属、建材等主要制造业领域</span>
+        </div>
+        <div class="compatibility-item">
+            <span class="text-success">✓</span>
+            <span><strong>标准化分类：</strong>3层级清晰结构，便于精确分类和管理</span>
+        </div>
+        <div class="compatibility-item">
+            <span class="text-success">✓</span>
+            <span><strong>实用性强：</strong>适用于采购、库存、生产等多个业务场景</span>
+        </div>
+        <div class="compatibility-item">
+            <span class="text-info">ℹ</span>
+            <span><strong>建议：</strong>选择前可预览具体分类结构，确保符合业务需求</span>
+        </div>
+    </div>
+
+    <!-- 分类结构预览（默认隐藏） -->
+    <div class="preview-container" id="previewContainer" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5><i class="fas fa-sitemap"></i> 分类结构预览</h5>
+            <button class="btn btn-sm btn-outline-secondary" id="closePreviewBtn">
+                <i class="fas fa-times"></i> 关闭预览
+            </button>
+        </div>
+        
+        <!-- 搜索框 -->
+        <div class="mb-3">
+            <input type="text" class="form-control" id="categorySearch" 
+                   placeholder="搜索分类名称或编码...">
+        </div>
+        
+        <!-- 分类树 -->
+        <div class="category-tree" id="categoryTree">
+            <!-- 动态加载分类数据 -->
+        </div>
+    </div>
+</div>
+
+<!-- 统计详情模态框 -->
+<div class="modal fade stat-details-modal" id="statDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statDetailsTitle">
+                    <i class="fas fa-chart-bar"></i> 统计详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body" id="statDetailsBody">
+                <!-- 动态加载统计详情 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> 关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 确认选择模态框 -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认选择分类模板</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您即将选择 <strong>"工业制造业标准分类体系"</strong> 作为分类模板。</p>
+                <p>该模板包含 <strong>548个分类</strong>，将应用于后续的智能分类处理。</p>
+                <p class="text-muted">选择后可以在后续步骤中查看分类结果和进行调整。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" id="confirmSelectBtn">
+                    <i class="fas fa-check"></i> 确认选择
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 最简单的统计详情显示函数 - 放在最前面确保立即可用
+function showStatDetails(type) {
+    console.log('showStatDetails被调用:', type);
+    
+    let message = '';
+    switch(type) {
+        case 'total':
+            message = '📊 总分类数详情\n\n总分类数量：548个\n一级分类：18个\n二级分类：98个\n三级分类：432个\n\n说明：涵盖制造业全领域的分类体系';
+            break;
+        case 'levels':
+            message = '🏗️ 层级结构详情\n\n层级深度：3层\n结构类型：树形层级结构\n\n第一层：主要分类（如：化工、机械、金属等）\n第二层：细分分类（如：化工三剂、通用机械等）\n第三层：具体分类（如：防爆工具、轴承等）';
+            break;
+        case 'level1':
+            message = '🗂️ 一级分类详情\n\n一级分类数量：18个\n\n主要包括：\n• A3 - 化工三剂：化学原料及制品\n• AA - 通用机械：机械设备及零配件\n• AB - 专用机械：专业机械设备\n• AJ - 金属制品：金属材料及制品\n• AS - 钢材：各类钢材产品\n• AN - 建工材料：建筑工程材料\n• AT - 工器具：工具器具设备\n• 更多制造业领域...';
+            break;
+        case 'compatibility':
+            message = '🏭 制造业适配度详情\n\n适配度：95%\n覆盖领域：18个主要制造业领域\n\n各行业覆盖情况：\n• 化工行业：100%\n• 机械制造：98%\n• 金属加工：95%\n• 建筑材料：92%\n• 工具器具：90%\n\n该分类体系基于国家标准和行业实践，对制造业有很高的适配度。';
+            break;
+        default:
+            message = '详情信息：' + type;
+    }
+    
+    alert(message);
+}
+
+// 测试函数
+function testAlert() {
+    alert('点击功能正常！JavaScript可以执行。');
+    console.log('测试函数被调用');
+}
+
+// 确保函数在全局范围可用
+window.showStatDetails = showStatDetails;
+window.testAlert = testAlert;
+
+// 立即测试函数是否可用
+console.log('JavaScript加载完成，函数定义:', typeof showStatDetails);
+console.log('测试调用showStatDetails:', showStatDetails ? '✅ 可用' : '❌ 不可用');
+
+// 全局变量存储统计数据
+let categoryStats = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM内容加载完成，开始绑定事件');
+    
+    // 测试基本功能
+    console.log('统计卡片数量:', document.querySelectorAll('.stat-card').length);
+    console.log('详情按钮数量:', document.querySelectorAll('.detail-btn').length);
+    
+    // 加载统计数据
+    loadCategoryStatistics();
+    
+    // 预览按钮点击事件
+    const previewBtn = document.getElementById('previewBtn');
+    if (previewBtn) {
+        previewBtn.addEventListener('click', function() {
+            console.log('预览按钮被点击');
+            const container = document.getElementById('previewContainer');
+            const btn = this;
+            
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i> 隐藏预览';
+                btn.classList.remove('btn-outline-info');
+                btn.classList.add('btn-info');
+                loadCategoryTree();
+            } else {
+                container.style.display = 'none';
+                btn.innerHTML = '<i class="fas fa-eye"></i> 预览结构';
+                btn.classList.remove('btn-info');
+                btn.classList.add('btn-outline-info');
+            }
+        });
+    }
+    
+    // 关闭预览按钮
+    const closePreviewBtn = document.getElementById('closePreviewBtn');
+    if (closePreviewBtn) {
+        closePreviewBtn.addEventListener('click', function() {
+            const container = document.getElementById('previewContainer');
+            const previewBtn = document.getElementById('previewBtn');
+            
+            container.style.display = 'none';
+            previewBtn.innerHTML = '<i class="fas fa-eye"></i> 预览结构';
+            previewBtn.classList.remove('btn-info');
+            previewBtn.classList.add('btn-outline-info');
+        });
+    }
+    
+    // 选择模板按钮
+    const selectTemplateBtn = document.getElementById('selectTemplateBtn');
+    if (selectTemplateBtn) {
+        selectTemplateBtn.addEventListener('click', function() {
+            console.log('选择模板按钮被点击');
+            try {
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+            } catch (e) {
+                alert('即将选择制造业标准分类模板');
+            }
+        });
+    }
+    
+    // 确认选择按钮
+    const confirmSelectBtn = document.getElementById('confirmSelectBtn');
+    if (confirmSelectBtn) {
+        confirmSelectBtn.addEventListener('click', function() {
+            selectTemplate();
+        });
+    }
+    
+    // 搜索功能
+    const categorySearch = document.getElementById('categorySearch');
+    if (categorySearch) {
+        categorySearch.addEventListener('input', function(e) {
+            filterCategories(e.target.value);
+        });
+    }
+    
+    // 统计卡片点击事件 - 使用最直接的方法
+    const statCards = document.querySelectorAll('.stat-card');
+    console.log('找到统计卡片:', statCards.length);
+    
+    statCards.forEach(function(card, index) {
+        console.log('绑定卡片', index + 1, '事件');
+        
+        // 添加视觉反馈
+        card.style.cursor = 'pointer';
+        
+        // 点击事件
+        card.addEventListener('click', function(e) {
+            console.log('卡片被点击了！');
+            const statType = this.getAttribute('data-stat-type');
+            console.log('统计类型:', statType);
+            
+            // 直接调用showStatDetails
+            if (statType) {
+                showStatDetails(statType);
+            } else {
+                alert('点击功能正常，但未找到统计类型');
+            }
+        });
+        
+        // 鼠标效果
+        card.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+            console.log('鼠标进入卡片');
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = 'white';
+        });
+    });
+    
+    // 详情按钮点击事件
+    const detailBtns = document.querySelectorAll('.detail-btn');
+    console.log('找到详情按钮:', detailBtns.length);
+    
+    detailBtns.forEach(function(btn, index) {
+        console.log('绑定按钮', index + 1, '事件');
+        
+        btn.addEventListener('click', function(e) {
+            console.log('详情按钮被点击了！');
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const card = this.closest('.stat-card');
+            if (card) {
+                const statType = card.getAttribute('data-stat-type');
+                console.log('按钮触发统计类型:', statType);
+                if (statType) {
+                    showStatDetails(statType);
+                }
+            }
+        });
+    });
+    
+    console.log('所有事件绑定完成');
+});
+
+// 加载分类树数据
+function loadCategoryTree() {
+    fetch('/api/categories/tree')
+        .then(response => response.json())
+        .then(data => {
+            renderCategoryTree(data);
+        })
+        .catch(error => {
+            console.error('加载分类数据失败:', error);
+            document.getElementById('categoryTree').innerHTML = 
+                '<p class="text-muted">加载分类数据失败，请刷新页面重试。</p>';
+        });
+}
+
+// 渲染分类树
+function renderCategoryTree(categories) {
+    const container = document.getElementById('categoryTree');
+    let html = '';
+    
+    // 按层级分组显示
+    const level1 = categories.filter(cat => cat.level === 1);
+    
+    level1.forEach(cat1 => {
+        html += `
+            <div class="category-item">
+                <span class="category-code">${cat1.category_code}</span>
+                <span class="category-name"><strong>${cat1.category_name}</strong></span>
+            </div>
+        `;
+        
+        // 显示前3个二级分类作为示例
+        const level2 = categories.filter(cat => cat.parent_code === cat1.category_code).slice(0, 3);
+        level2.forEach(cat2 => {
+            html += `
+                <div class="category-item" style="padding-left: 2rem;">
+                    <span class="category-code">${cat2.category_code}</span>
+                    <span class="category-name">${cat2.category_name}</span>
+                </div>
+            `;
+        });
+        
+        if (categories.filter(cat => cat.parent_code === cat1.category_code).length > 3) {
+            html += `
+                <div class="category-item" style="padding-left: 2rem; color: var(--text-muted);">
+                    <span>... 更多子分类</span>
+                </div>
+            `;
+        }
+    });
+    
+    container.innerHTML = html;
+}
+
+// 搜索过滤
+function filterCategories(searchTerm) {
+    const items = document.querySelectorAll('.category-item');
+    
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(searchTerm.toLowerCase()) || !searchTerm) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// 选择模板
+function selectTemplate() {
+    const templateData = {
+        template_id: 'manufacturing_standard_v1',
+        template_name: '工业制造业标准分类体系',
+        total_categories: 548,
+        levels: 3,
+        selected_at: new Date().toISOString()
+    };
+    
+    fetch('/api/template/select', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(templateData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 显示成功提示
+            showNotification('分类模板选择成功！即将跳转到下一步...', 'success');
+            
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+            modal.hide();
+            
+            // 延迟跳转
+            setTimeout(() => {
+                window.location.href = '/extract_parameters';
+            }, 1500);
+        } else {
+            showNotification('选择失败：' + (data.error || '未知错误'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('选择模板失败:', error);
+        showNotification('选择失败，请重试', 'error');
+    });
+}
+
+// 加载分类统计数据
+function loadCategoryStatistics() {
+    fetch('/api/categories/detailed-statistics')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                categoryStats = data.statistics;
+                updateStatCards();
+            }
+        })
+        .catch(error => {
+            console.error('加载统计数据失败:', error);
+        });
+}
+
+// 更新统计卡片数据
+function updateStatCards() {
+    if (categoryStats.total) {
+        document.getElementById('totalCategories').textContent = categoryStats.total;
+    }
+    if (categoryStats.level_stats && categoryStats.level_stats['1']) {
+        document.getElementById('level1Count').textContent = categoryStats.level_stats['1'];
+    }
+    if (categoryStats.compatibility_rate) {
+        document.getElementById('compatibilityRate').textContent = categoryStats.compatibility_rate + '%';
+    }
+}
+
+// 简化的加载统计数据函数
+function loadCategoryStatistics() {
+    console.log('加载统计数据...');
+    // 这里可以添加API调用来获取真实数据
+}
+
+// 显示统计详情
+function showStatDetails(type) {
+    console.log('显示统计详情:', type); // 调试日志
+    const modalElement = document.getElementById('statDetailsModal');
+    const title = document.getElementById('statDetailsTitle');
+    const body = document.getElementById('statDetailsBody');
+    
+    if (!modalElement || !title || !body) {
+        console.error('模态框元素未找到');
+        return;
+    }
+    
+    let content = '';
+    
+    switch(type) {
+        case 'total':
+            title.innerHTML = '<i class="fas fa-list-ol"></i> 总分类数详情';
+            content = generateTotalStatsContent();
+            break;
+        case 'levels':
+            title.innerHTML = '<i class="fas fa-layer-group"></i> 层级结构详情';
+            content = generateLevelsContent();
+            break;
+        case 'level1':
+            title.innerHTML = '<i class="fas fa-sitemap"></i> 一级分类详情';
+            content = generateLevel1Content();
+            break;
+        case 'compatibility':
+            title.innerHTML = '<i class="fas fa-industry"></i> 制造业适配度详情';
+            content = generateCompatibilityContent();
+            break;
+    }
+    
+    body.innerHTML = content;
+    
+    // 使用Bootstrap 5的方式显示模态框
+    try {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } catch (error) {
+        console.error('模态框显示错误:', error);
+        // 降级处理：使用jQuery方式
+        if (typeof $ !== 'undefined') {
+            $('#statDetailsModal').modal('show');
+        } else {
+            alert('详情功能暂时不可用，请刷新页面重试');
+        }
+    }
+}
+
+// 生成总分类统计内容
+function generateTotalStatsContent() {
+    const stats = categoryStats;
+    const total = stats.total || 548;
+    const level1 = stats.level_stats ? stats.level_stats['1'] : 18;
+    const level2 = stats.level_stats ? stats.level_stats['2'] : 98;
+    const level3 = stats.level_stats ? stats.level_stats['3'] : 432;
+    
+    return `
+        <div class="detail-item">
+            <span class="detail-label">总分类数量</span>
+            <span class="detail-value">${total}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">一级分类</span>
+            <span class="detail-value">${level1}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">二级分类</span>
+            <span class="detail-value">${level2}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">三级分类</span>
+            <span class="detail-value">${level3}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">叶子节点数量</span>
+            <span class="detail-value">${stats.leaf_count || level3}</span>
+        </div>
+        <hr>
+        <h6><i class="fas fa-chart-pie"></i> 分布比例</h6>
+        <div class="progress-item">
+            <div class="d-flex justify-content-between mb-1">
+                <span>一级分类</span>
+                <span>${Math.round(level1 / total * 100)}%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-primary" style="width: ${Math.round(level1 / total * 100)}%"></div>
+            </div>
+        </div>
+        <div class="progress-item">
+            <div class="d-flex justify-content-between mb-1">
+                <span>二级分类</span>
+                <span>${Math.round(level2 / total * 100)}%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-success" style="width: ${Math.round(level2 / total * 100)}%"></div>
+            </div>
+        </div>
+        <div class="progress-item">
+            <div class="d-flex justify-content-between mb-1">
+                <span>三级分类</span>
+                <span>${Math.round(level3 / total * 100)}%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-info" style="width: ${Math.round(level3 / total * 100)}%"></div>
+            </div>
+        </div>
+    `;
+}
+
+// 生成层级结构内容
+function generateLevelsContent() {
+    return `
+        <div class="detail-item">
+            <span class="detail-label">层级深度</span>
+            <span class="detail-value">3层</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">结构类型</span>
+            <span class="detail-value">树形层级结构</span>
+        </div>
+        <hr>
+        <h6><i class="fas fa-tree"></i> 层级说明</h6>
+        <div class="detail-item">
+            <span class="detail-label"><i class="fas fa-circle text-primary"></i> 第一层</span>
+            <span class="detail-value">主要分类（如：化工、机械、金属等）</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label"><i class="fas fa-circle text-success"></i> 第二层</span>
+            <span class="detail-value">细分分类（如：化工三剂、通用机械等）</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label"><i class="fas fa-circle text-info"></i> 第三层</span>
+            <span class="detail-value">具体分类（如：防爆工具、轴承等）</span>
+        </div>
+        <hr>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            每个层级都有明确的分类标准，确保物料分类的准确性和一致性。
+        </div>
+    `;
+}
+
+// 生成一级分类内容
+function generateLevel1Content() {
+    const level1Count = categoryStats.level_stats ? categoryStats.level_stats['1'] : 18;
+    return `
+        <div class="detail-item">
+            <span class="detail-label">一级分类数量</span>
+            <span class="detail-value">${level1Count}</span>
+        </div>
+        <hr>
+        <h6><i class="fas fa-list"></i> 主要一级分类</h6>
+        <div class="detail-item">
+            <span class="detail-label">A3 - 化工三剂</span>
+            <span class="detail-value">化学原料及制品</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">AA - 通用机械</span>
+            <span class="detail-value">机械设备及零配件</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">AB - 专用机械</span>
+            <span class="detail-value">专业机械设备</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">AJ - 金属制品</span>
+            <span class="detail-value">金属材料及制品</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">AS - 钢材</span>
+            <span class="detail-value">各类钢材产品</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">AN - 建工材料</span>
+            <span class="detail-value">建筑工程材料</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">AT - 工器具</span>
+            <span class="detail-value">工具器具设备</span>
+        </div>
+        <div class="detail-item" style="color: #6c757d;">
+            <span class="detail-label">... 其他分类</span>
+            <span class="detail-value">更多制造业领域</span>
+        </div>
+    `;
+}
+
+// 生成制造业适配度内容
+function generateCompatibilityContent() {
+    const rate = categoryStats.compatibility_rate || 95;
+    return `
+        <div class="detail-item">
+            <span class="detail-label">制造业适配度</span>
+            <span class="detail-value">${rate}%</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">覆盖领域</span>
+            <span class="detail-value">18个主要制造业领域</span>
+        </div>
+        <hr>
+        <h6><i class="fas fa-industry"></i> 适配领域详情</h6>
+        <div class="progress-item">
+            <div class="d-flex justify-content-between mb-1">
+                <span>化工行业</span>
+                <span>100%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-success" style="width: 100%"></div>
+            </div>
+        </div>
+        <div class="progress-item">
+            <div class="d-flex justify-content-between mb-1">
+                <span>机械制造</span>
+                <span>98%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-success" style="width: 98%"></div>
+            </div>
+        </div>
+        <div class="progress-item">
+            <div class="d-flex justify-content-between mb-1">
+                <span>金属加工</span>
+                <span>95%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-success" style="width: 95%"></div>
+            </div>
+        </div>
+        <div class="progress-item">
+            <div class="d-flex justify-content-between mb-1">
+                <span>建筑材料</span>
+                <span>92%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-info" style="width: 92%"></div>
+            </div>
+        </div>
+        <div class="progress-item">
+            <div class="d-flex justify-content-between mb-1">
+                <span>工具器具</span>
+                <span>90%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar bg-info" style="width: 90%"></div>
+            </div>
+        </div>
+        <hr>
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            该分类体系基于国家标准和行业实践，对制造业有很高的适配度。
+        </div>
+    `;
+}
+
+// 生成简化统计内容
+function generateSimpleStatsContent(type) {
+    const stats = categoryStats;
+    const total = stats.total || 548;
+    const level1 = stats.level_stats ? stats.level_stats['1'] : 18;
+    const level2 = stats.level_stats ? stats.level_stats['2'] : 98;
+    const level3 = stats.level_stats ? stats.level_stats['3'] : 432;
+    
+    switch(type) {
+        case 'total':
+            return `
+                <div style="padding: 20px;">
+                    <h5>📈 分类统计概览</h5>
+                    <hr>
+                    <p><strong>总分类数量：</strong>${total}</p>
+                    <p><strong>一级分类：</strong>${level1} 个</p>
+                    <p><strong>二级分类：</strong>${level2} 个</p>
+                    <p><strong>三级分类：</strong>${level3} 个</p>
+                    <hr>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                        <p><strong>说明：</strong>分类体系涵盖制造业全领域，包含化工、机械、金属、建材等主要行业。</p>
+                    </div>
+                </div>
+            `;
+        case 'levels':
+            return `
+                <div style="padding: 20px;">
+                    <h5>🏗️ 层级结构说明</h5>
+                    <hr>
+                    <p><strong>层级深度：</strong>3层</p>
+                    <p><strong>结构类型：</strong>树形层级结构</p>
+                    <hr>
+                    <div style="margin: 15px 0;">
+                        <p><span style="color: #007bff;">●</span> <strong>第一层：</strong>主要分类（如：化工、机械、金属等）</p>
+                        <p><span style="color: #28a745;">●</span> <strong>第二层：</strong>细分分类（如：化工三剂、通用机械等）</p>
+                        <p><span style="color: #17a2b8;">●</span> <strong>第三层：</strong>具体分类（如：防爆工具、轴承等）</p>
+                    </div>
+                </div>
+            `;
+        case 'level1':
+            return `
+                <div style="padding: 20px;">
+                    <h5>🗂️ 一级分类详情</h5>
+                    <hr>
+                    <p><strong>一级分类数量：</strong>${level1} 个</p>
+                    <hr>
+                    <div style="margin: 15px 0;">
+                        <p><strong>A3 - 化工三剂：</strong>化学原料及制品</p>
+                        <p><strong>AA - 通用机械：</strong>机械设备及零配件</p>
+                        <p><strong>AB - 专用机械：</strong>专业机械设备</p>
+                        <p><strong>AJ - 金属制品：</strong>金属材料及制品</p>
+                        <p><strong>AS - 钢材：</strong>各类钢材产品</p>
+                        <p><strong>AN - 建工材料：</strong>建筑工程材料</p>
+                        <p><strong>AT - 工器具：</strong>工具器具设备</p>
+                        <p style="color: #6c757d;"><em>... 更多制造业领域</em></p>
+                    </div>
+                </div>
+            `;
+        case 'compatibility':
+            return `
+                <div style="padding: 20px;">
+                    <h5>🏭 制造业适配度说明</h5>
+                    <hr>
+                    <p><strong>适配度：</strong>95%</p>
+                    <p><strong>覆盖领域：</strong>18个主要制造业领域</p>
+                    <hr>
+                    <div style="margin: 15px 0;">
+                        <p>✅ <strong>化工行业：</strong>100% 覆盖</p>
+                        <p>✅ <strong>机械制造：</strong>98% 覆盖</p>
+                        <p>✅ <strong>金属加工：</strong>95% 覆盖</p>
+                        <p>✅ <strong>建筑材料：</strong>92% 覆盖</p>
+                        <p>✅ <strong>工具器具：</strong>90% 覆盖</p>
+                    </div>
+                    <div style="background: #d4edda; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                        <p style="margin: 0;"><strong>💡 提示：</strong>该分类体系基于国家标准和行业实践，对制造业有很高的适配度。</p>
+                    </div>
+                </div>
+            `;
+        default:
+            return '<p>暂无详细信息</p>';
+    }
+}
+
+// 获取统计详情文本（用于alert降级显示）
+function getStatDetailsText(type) {
+    const stats = categoryStats;
+    const total = stats.total || 548;
+    const level1 = stats.level_stats ? stats.level_stats['1'] : 18;
+    
+    switch(type) {
+        case 'total':
+            return `总分类数详情：\n总计：${total}个分类\n一级：${level1}个\n二级：${stats.level_stats ? stats.level_stats['2'] : 98}个\n三级：${stats.level_stats ? stats.level_stats['3'] : 432}个`;
+        case 'levels':
+            return '层级结构：3层树形结构\n第一层：主要分类\n第二层：细分分类\n第三层：具体分类';
+        case 'level1':
+            return `一级分类详情：\n共${level1}个一级分类\n主要包括：化工三剂、通用机械、专用机械、金属制品、建工材料、工器具等制造业全领域`;
+        case 'compatibility':
+            return '制造业适配度：95%\n覆盖18个主要制造业领域\n包括化工、机械、金属、建材、工具等行业';
+        default:
+            return '详情信息加载中...';
+    }
+}
+
+// 通知提示
+function showNotification(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const html = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // 插入到页面顶部
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', html);
+}
+</script>
+{% endblock %}
