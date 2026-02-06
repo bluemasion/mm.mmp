@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}批量管理 - 物料主数据管理智能应用{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">批量管理</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tasks text-success"></i> 批量处理管理
+                </h5>
+                <div>
+                    <a href="/material-workflow" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 新建批量任务
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- 筛选和搜索 -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">全部状态</option>
+                            <option value="processing">处理中</option>
+                            <option value="completed">已完成</option>
+                            <option value="failed">失败</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="searchInput" placeholder="搜索文件名或会话ID...">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-secondary w-100" onclick="refreshList()">
+                            <i class="fas fa-sync-alt"></i> 刷新
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 批量处理列表 -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="5%">
+                                    <input type="checkbox" id="selectAll">
+                                </th>
+                                <th width="15%">处理时间</th>
+                                <th width="20%">文件名</th>
+                                <th width="10%">数据量</th>
+                                <th width="15%">处理进度</th>
+                                <th width="10%">状态</th>
+                                <th width="25%">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="batchListTable">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                    暂无批量处理记录
+                                    <br>
+                                    <a href="/material-workflow" class="btn btn-primary mt-3">
+                                        <i class="fas fa-plus"></i> 开始新的批量处理
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分页 -->
+                <nav aria-label="批量处理分页">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">上一页</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">下一页</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary mb-2" id="totalTasks">0</h3>
+                <p class="text-muted mb-0">总任务数</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning mb-2" id="processingTasks">0</h3>
+                <p class="text-muted mb-0">处理中</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success mb-2" id="completedTasks">0</h3>
+                <p class="text-muted mb-0">已完成</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-danger mb-2" id="failedTasks">0</h3>
+                <p class="text-muted mb-0">失败</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    loadBatchList();
+    loadStatistics();
+});
+
+function loadBatchList() {
+    // 这里应该从API获取批量处理列表
+    // 暂时显示示例数据
+    const sampleData = [];
+    
+    if (sampleData.length === 0) {
+        // 表格已经显示了默认的空状态
+        return;
+    }
+    
+    // 渲染数据到表格
+    renderBatchList(sampleData);
+}
+
+function renderBatchList(data) {
+    let html = '';
+    data.forEach(function(item) {
+        html += `
+            <tr>
+                <td><input type="checkbox" value="${item.id}"></td>
+                <td>${item.created_at}</td>
+                <td>${item.filename}</td>
+                <td>${item.total_rows}</td>
+                <td>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: ${item.progress}%" 
+                             aria-valuenow="${item.progress}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            ${item.progress}%
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-${getStatusColor(item.status)}">
+                        ${getStatusText(item.status)}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="viewDetails('${item.id}')">
+                        <i class="fas fa-eye"></i> 查看
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="downloadResult('${item.id}')">
+                        <i class="fas fa-download"></i> 下载
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteTask('${item.id}')">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    $('#batchListTable').html(html);
+}
+
+function loadStatistics() {
+    // 从API获取统计数据
+    $('#totalTasks').text('0');
+    $('#processingTasks').text('0');
+    $('#completedTasks').text('0');
+    $('#failedTasks').text('0');
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'processing': 'warning',
+        'completed': 'success',
+        'failed': 'danger'
+    };
+    return colors[status] || 'secondary';
+}
+
+function getStatusText(status) {
+    const texts = {
+        'processing': '处理中',
+        'completed': '已完成',
+        'failed': '失败'
+    };
+    return texts[status] || '未知';
+}
+
+function refreshList() {
+    loadBatchList();
+    loadStatistics();
+}
+
+function viewDetails(taskId) {
+    window.location.href = `/batch_details/${taskId}`;
+}
+
+function downloadResult(taskId) {
+    window.location.href = `/api/download_batch_result/${taskId}`;
+}
+
+function deleteTask(taskId) {
+    if (confirm('确定要删除这个批量处理任务吗?')) {
+        $.ajax({
+            url: `/api/delete_batch_task/${taskId}`,
+            type: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    alert('删除成功');
+                    refreshList();
+                }
+            },
+            error: function() {
+                alert('删除失败');
+            }
+        });
+    }
+}
+
+$('#selectAll').on('change', function() {
+    $('tbody input[type="checkbox"]').prop('checked', $(this).prop('checked'));
+});
+</script>
+{% endblock %}

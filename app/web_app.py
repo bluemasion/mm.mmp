@@ -90,6 +90,16 @@ os.makedirs(SESSION_DATA_DIR, exist_ok=True)
 # 全局服务实例
 workflow_service = None
 
+# 注册新功能的Blueprint - 在应用初始化后立即注册
+try:
+    import sys
+    sys.path.append(project_root)
+    from single_fuzzy_matching_api import single_matching_bp
+    app.register_blueprint(single_matching_bp)
+    logger.info("逐条模糊匹配功能注册成功")
+except Exception as bp_error:
+    logger.error(f"逐条模糊匹配功能注册失败: {bp_error}")
+
 class SessionDataManager:
     """会话数据管理器 - 数据库版本"""
     
@@ -182,6 +192,7 @@ def init_service():
         
         workflow_service = MaterialWorkflowService(service_config)
         logger.info("工作流服务初始化成功")
+        
         return True
     except Exception as e:
         logger.error(f"工作流服务初始化失败: {e}")
@@ -249,6 +260,7 @@ def get_workflow_status():
     """获取工作流状态"""
     return {
         'uploaded_data': get_session_data('uploaded_data') is not None,
+        'selected_template': get_session_data('selected_template') is not None,
         'extraction_results': get_session_data('extraction_results') is not None,
         'category_selections': get_session_data('category_selections') is not None,
         'generated_forms': get_session_data('generated_forms') is not None,

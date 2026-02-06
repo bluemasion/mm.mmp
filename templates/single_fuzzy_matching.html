@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逐条模糊匹配 - MMP智能分类系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .main-container {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .input-panel {
+            background: #f8f9fa;
+            border-right: 2px solid #dee2e6;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .results-panel {
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .form-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .threshold-container {
+            background: #e3f2fd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .threshold-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .threshold-presets {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .threshold-preset {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .threshold-preset:hover {
+            background: #1976D2;
+        }
+        
+        .results-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .similar-materials-section {
+            min-height: 600px;
+        }
+        
+        .recommended-categories-section {
+            max-height: 400px;
+        }
+        
+        .material-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .material-card:hover {
+            border-color: #2196F3;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.2);
+        }
+        
+        .confidence-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .confidence-badge.medium {
+            background: #FF9800;
+        }
+        
+        .confidence-badge.low {
+            background: #f44336;
+        }
+        
+        .material-tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            max-width: 300px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .filter-controls {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2196F3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .history-section {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .history-item:hover {
+            background: #f0f7ff;
+        }
+        
+        .category-card {
+            background: #e8f5e8;
+            border: 1px solid #4CAF50;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .no-results {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid main-container">
+        <div class="row h-100">
+            <!-- 左侧输入区域 -->
+            <div class="col-md-4 input-panel">
+                <h3 class="mb-4">
+                    <i class="fas fa-search text-primary"></i>
+                    逐条模糊匹配
+                </h3>
+                
+                <!-- 输入表单 -->
+                <div class="form-section">
+                    <h5 class="mb-3">物料信息</h5>
+                    <form id="materialForm">
+                        <div class="mb-3">
+                            <label class="form-label">物料名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="materialName" 
+                                   placeholder="例如: 疏水器、法兰、三通等" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">规格参数 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="materialSpec" 
+                                   placeholder="例如: DN25 PN1.6 CS" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">物料描述</label>
+                            <textarea class="form-control" id="materialDesc" rows="3"
+                                     placeholder="详细描述，如材质、温度、压力等参数"></textarea>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- 阈值设置 -->
+                <div class="form-section">
+                    <h5 class="mb-3">匹配设置</h5>
+                    <div class="threshold-container">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label mb-0">相似度阈值</label>
+                            <span id="thresholdValue" class="badge bg-primary">55%</span>
+                        </div>
+                        <input type="range" class="threshold-slider" id="thresholdSlider" 
+                               min="0" max="100" value="55">
+                        <div class="threshold-presets">
+                            <button type="button" class="threshold-preset" data-value="30">宽松 30%</button>
+                            <button type="button" class="threshold-preset" data-value="55">推荐 55%</button>
+                            <button type="button" class="threshold-preset" data-value="75">严格 75%</button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="thresholdTip">推荐阈值: 系统根据数据特征推荐55%</span>
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- 操作按钮 -->
+                <div class="form-section">
+                    <button type="button" class="btn btn-primary btn-lg w-100 mb-2" id="matchButton">
+                        <i class="fas fa-search"></i>
+                        开始匹配
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary w-100" id="resetButton">
+                        <i class="fas fa-refresh"></i>
+                        重置表单
+                    </button>
+                </div>
+                
+                <!-- 匹配历史 -->
+                <div class="form-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-history text-secondary"></i>
+                        匹配历史
+                        <button type="button" class="btn btn-sm btn-outline-danger float-end" id="clearHistoryButton">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </h5>
+                    <div class="history-section" id="historyContainer">
+                        <div class="text-muted text-center py-3">
+                            <i class="fas fa-history"></i><br>
+                            暂无匹配历史
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧结果区域 -->
+            <div class="col-md-8 results-panel">
+                <div class="position-relative">
+                    <!-- 加载遮罩 -->
+                    <div class="loading-overlay" id="loadingOverlay">
+                        <div class="text-center">
+                            <div class="spinner"></div>
+                            <div class="mt-3">正在匹配中...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 近似物料结果 (优先显示) -->
+                    <div class="results-section similar-materials-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4>
+                                <i class="fas fa-layer-group text-warning"></i>
+                                近似物料
+                                <span id="similarCount" class="badge bg-warning">0</span>
+                            </h4>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" id="exportSimilarButton">
+                                    <i class="fas fa-download"></i>
+                                    导出
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 过滤控制 -->
+                        <div class="filter-controls">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <select class="form-select form-select-sm" id="categoryFilter">
+                                        <option value="">所有分类</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select form-select-sm" id="sortBy">
+                                        <option value="similarity">按相似度排序</option>
+                                        <option value="name">按名称排序</option>
+                                        <option value="category">按分类排序</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" 
+                                           id="searchFilter" placeholder="搜索物料...">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 近似物料列表 -->
+                        <div id="similarMaterialsList">
+                            <div class="no-results">
+                                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                <p>请输入物料信息并点击"开始匹配"</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 分页控件 -->
+                        <div class="pagination-container" id="paginationContainer" style="display: none;">
+                            <div class="pagination-info">
+                                显示第 <span id="pageStart">1</span> 到 <span id="pageEnd">20</span> 条，
+                                共 <span id="totalCount">0</span> 条记录
+                            </div>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0" id="paginationNav">
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                    
+                    <!-- 推荐类别结果 -->
+                    <div class="results-section recommended-categories-section">
+                        <h5>
+                            <i class="fas fa-tags text-success"></i>
+                            推荐分类
+                            <span id="categoryCount" class="badge bg-success">0</span>
+                        </h5>
+                        <div id="recommendedCategoriesList">
+                            <div class="no-results">
+                                <i class="fas fa-tags fa-2x text-muted mb-2"></i>
+                                <p>暂无推荐分类</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 详情提示框 -->
+    <div class="material-tooltip" id="materialTooltip"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let currentPage = 1;
+        let pageSize = 20;
+        let totalResults = [];
+        let filteredResults = [];
+        let matchHistory = [];
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeThresholdControls();
+            initializeEventListeners();
+            loadMatchHistory();
+        });
+        
+        // 初始化阈值控件
+        function initializeThresholdControls() {
+            const slider = document.getElementById('thresholdSlider');
+            const valueDisplay = document.getElementById('thresholdValue');
+            const tipDisplay = document.getElementById('thresholdTip');
+            
+            slider.addEventListener('input', function() {
+                const value = parseInt(this.value);
+                valueDisplay.textContent = value + '%';
+                updateThresholdTip(value);
+            });
+            
+            // 预设按钮
+            document.querySelectorAll('.threshold-preset').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const value = parseInt(this.dataset.value);
+                    slider.value = value;
+                    valueDisplay.textContent = value + '%';
+                    updateThresholdTip(value);
+                });
+            });
+        }
+        
+        // 更新阈值提示
+        function updateThresholdTip(value) {
+            const tipDisplay = document.getElementById('thresholdTip');
+            if (value < 40) {
+                tipDisplay.innerHTML = '<i class="fas fa-info-circle"></i> 宽松匹配: 返回更多相关结果，但准确性较低';
+            } else if (value >= 40 && value <= 70) {
+                tipDisplay.innerHTML = '<i class="fas fa-info-circle"></i> 推荐设置: 平衡准确性与覆盖率的最佳选择';
+            } else {
+                tipDisplay.innerHTML = '<i class="fas fa-info-circle"></i> 严格匹配: 只返回高度相似的结果，准确性高';
+            }
+        }
+        
+        // 初始化事件监听
+        function initializeEventListeners() {
+            // 匹配按钮
+            document.getElementById('matchButton').addEventListener('click', performMatching);
+            
+            // 重置按钮
+            document.getElementById('resetButton').addEventListener('click', resetForm);
+            
+            // 清空历史
+            document.getElementById('clearHistoryButton').addEventListener('click', clearHistory);
+            
+            // 过滤和排序
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            document.getElementById('sortBy').addEventListener('change', applyFilters);
+            document.getElementById('searchFilter').addEventListener('input', debounce(applyFilters, 300));
+            
+            // 导出按钮
+            document.getElementById('exportSimilarButton').addEventListener('click', exportResults);
+        }
+        
+        // 执行匹配
+        async function performMatching() {
+            const materialName = document.getElementById('materialName').value.trim();
+            const materialSpec = document.getElementById('materialSpec').value.trim();
+            const materialDesc = document.getElementById('materialDesc').value.trim();
+            const threshold = parseInt(document.getElementById('thresholdSlider').value);
+            
+            // 验证输入
+            if (!materialName || !materialSpec) {
+                alert('请填写物料名称和规格参数');
+                return;
+            }
+            
+            // 显示加载
+            showLoading(true);
+            
+            try {
+                // 准备请求数据
+                const requestData = {
+                    material: {
+                        name: materialName,
+                        spec: materialSpec,
+                        desc: materialDesc
+                    },
+                    threshold: threshold / 100,  // 转换为0-1范围
+                    max_results: 200  // 获取更多结果用于分页
+                };
+                
+                // 调用API
+                const response = await fetch('/api/single_fuzzy_matching', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 显示结果
+                    displayResults(result);
+                    
+                    // 保存到历史
+                    saveToHistory({
+                        materialName,
+                        materialSpec,
+                        materialDesc,
+                        threshold,
+                        timestamp: new Date().toLocaleString(),
+                        resultCount: result.similar_materials.length + result.recommended_categories.length
+                    });
+                } else {
+                    alert('匹配失败: ' + (result.error || '未知错误'));
+                }
+                
+            } catch (error) {
+                console.error('匹配错误:', error);
+                alert('匹配过程中发生错误，请稍后重试');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // 显示结果
+        function displayResults(result) {
+            totalResults = result.similar_materials || [];
+            filteredResults = [...totalResults];
+            
+            // 更新分类过滤器
+            updateCategoryFilter(totalResults);
+            
+            // 显示近似物料
+            displaySimilarMaterials();
+            
+            // 显示推荐分类
+            displayRecommendedCategories(result.recommended_categories || []);
+            
+            // 更新计数
+            document.getElementById('similarCount').textContent = totalResults.length;
+            document.getElementById('categoryCount').textContent = (result.recommended_categories || []).length;
+        }
+        
+        // 显示近似物料列表
+        function displaySimilarMaterials() {
+            const container = document.getElementById('similarMaterialsList');
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageResults = filteredResults.slice(start, end);
+            
+            if (pageResults.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-circle fa-3x text-muted mb-3"></i>
+                        <p>未找到符合条件的近似物料</p>
+                        <small class="text-muted">尝试降低相似度阈值或调整搜索条件</small>
+                    </div>
+                `;
+                document.getElementById('paginationContainer').style.display = 'none';
+                return;
+            }
+            
+            let html = '';
+            pageResults.forEach((material, index) => {
+                const confidence = material.confidence_percentage;
+                const confidenceClass = confidence >= 70 ? 'high' : confidence >= 50 ? 'medium' : 'low';
+                
+                const hasMapping = material.has_standard_mapping;
+                const standardCategory = material.standard_category || material.material_category;
+                const originalCategory = material.original_category || material.material_category;
+                const standardId = material.standard_id;
+                
+                html += `
+                    <div class="material-card" 
+                         data-material-id="${material.material_code}"
+                         onmouseenter="showMaterialTooltip(event, '${material.material_code}')"
+                         onmouseleave="hideMaterialTooltip()">
+                        <div class="confidence-badge ${confidenceClass}">
+                            ${confidence}%
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">${material.material_name}</h6>
+                                <small class="text-muted d-block mb-1">
+                                    <i class="fas fa-barcode"></i> ${material.material_code}
+                                </small>
+                                ${hasMapping ? `
+                                    <div class="small mb-1">
+                                        <i class="fas fa-tag text-primary"></i> 
+                                        <strong class="text-primary">${standardCategory}</strong>
+                                        ${standardId ? `<small class="text-muted">(ID: ${standardId})</small>` : ''}
+                                        <span class="badge bg-info ms-1" style="font-size: 9px;">标准</span>
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="fas fa-arrow-up"></i> 原始: ${originalCategory}
+                                    </div>
+                                ` : `
+                                    <small class="text-muted">
+                                        <i class="fas fa-tag"></i> ${material.material_category}
+                                        <span class="badge bg-secondary ms-1" style="font-size: 9px;">原始</span>
+                                    </small>
+                                `}
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <small class="text-muted d-block">规格参数</small>
+                                <small>${material.specification || '无'}</small>
+                                ${hasMapping ? `<div class="small text-success mt-1"><i class="fas fa-check-circle"></i> 已映射</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // 更新分页
+            updatePagination();
+        }
+        
+        // 显示推荐分类
+        function displayRecommendedCategories(categories) {
+            const container = document.getElementById('recommendedCategoriesList');
+            
+            if (categories.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-tags fa-2x text-muted mb-2"></i>
+                        <p>暂无推荐分类</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            categories.slice(0, 8).forEach((category, index) => {
+                const hasMapping = category.has_standard_mapping;
+                const standardCategory = category.standard_category || category.category_name;
+                const originalCategory = category.original_category || category.category_name;
+                const confidence = category.confidence_percentage || category.confidence || 0;
+                const source = category.source || 'classifier';
+                const standardId = category.standard_id;
+                
+                // 根据置信度设置样式
+                let confidenceBadge = 'bg-success';
+                if (confidence < 30) confidenceBadge = 'bg-danger';
+                else if (confidence < 60) confidenceBadge = 'bg-warning';
+                
+                // 根据来源设置图标
+                const sourceIcon = source === 'similar_materials' ? 'fas fa-link' : 'fas fa-robot';
+                const sourceText = source === 'similar_materials' ? '相似物料' : '智能分类';
+                
+                html += `
+                    <div class="category-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                ${hasMapping ? `
+                                    <div class="mb-1">
+                                        <strong class="text-primary">${standardCategory}</strong>
+                                        ${standardId ? `<small class="text-muted">(ID: ${standardId})</small>` : ''}
+                                        <span class="badge bg-info ms-1" style="font-size: 10px;">标准分类</span>
+                                    </div>
+                                    <div class="small text-muted">
+                                        <i class="fas fa-arrow-up"></i> 原始: ${originalCategory}
+                                    </div>
+                                ` : `
+                                    <div>
+                                        <strong>${standardCategory}</strong>
+                                        <span class="badge bg-secondary ms-1" style="font-size: 10px;">原始分类</span>
+                                    </div>
+                                `}
+                                <div class="small text-muted mt-1">
+                                    <i class="${sourceIcon}"></i> ${sourceText}
+                                    ${category.matching_details ? `· ${category.matching_details.substring(0, 50)}...` : ''}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge ${confidenceBadge}">${confidence}%</span>
+                                ${hasMapping ? `<br><small class="text-success">✓ 已映射</small>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // 显示/隐藏加载动画
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+        
+        // 其他功能函数...
+        function resetForm() {
+            document.getElementById('materialForm').reset();
+            document.getElementById('thresholdSlider').value = 55;
+            document.getElementById('thresholdValue').textContent = '55%';
+            updateThresholdTip(55);
+        }
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // 占位符函数 - 需要完整实现
+        function updateCategoryFilter(materials) { /* TODO */ }
+        function applyFilters() { /* TODO */ }
+        function updatePagination() { /* TODO */ }
+        function showMaterialTooltip(event, materialCode) { /* TODO */ }
+        function hideMaterialTooltip() { /* TODO */ }
+        function saveToHistory(historyItem) { /* TODO */ }
+        function loadMatchHistory() { /* TODO */ }
+        function clearHistory() { /* TODO */ }
+        function exportResults() { /* TODO */ }
+        
+    </script>
+</body>
+</html>

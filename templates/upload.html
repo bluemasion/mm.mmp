@@ -186,7 +186,7 @@
                     </div>
                     <div class="text-end mt-3">
                         <button type="button" class="btn btn-success" onclick="proceedToExtraction()">
-                            <i class="fas fa-arrow-right"></i> 下一步：参数提取
+                            <i class="fas fa-arrow-right"></i> 下一步
                         </button>
                     </div>
                 </div>
@@ -389,28 +389,53 @@ function handleFile(file) {
         contentType: false,
         success: function(response) {
             hideLoading();
+            console.log('上传响应:', response);
             if (response.success) {
                 displayFileInfo(response);
-                displayDataPreview(response.preview_data, response.columns);
+                const columns = response.mapped_columns || response.columns || [];
+                console.log('字段列表:', columns);
+                displayDataPreview(response.preview_data, columns);
                 uploadedData = response;
+            } else {
+                alert('上传失败：' + (response.error || '未知错误'));
             }
         },
-        error: function(xhr) {
+        error: function(xhr, status, error) {
             hideLoading();
-            const error = JSON.parse(xhr.responseText);
-            alert('文件上传失败：' + error.error);
+            console.error('上传错误:', xhr, status, error);
+            try {
+                const errorData = JSON.parse(xhr.responseText);
+                alert('文件上传失败：' + errorData.error);
+            } catch (e) {
+                alert('文件上传失败：' + error);
+            }
         }
     });
 }
 
 function displayFileInfo(fileData) {
+    console.log('显示文件信息:', fileData);
     $('#fileName').text(fileData.filename);
     $('#fileRows').text(fileData.total_rows + ' 行');
-    $('#fileColumns').text(fileData.columns.join(', '));
+    const columns = fileData.mapped_columns || fileData.columns || [];
+    $('#fileColumns').text(columns.join(', '));
     $('#fileInfo').removeClass('d-none');
+    console.log('文件信息显示完成');
 }
 
 function displayDataPreview(data, columns) {
+    console.log('显示数据预览 - 数据行数:', data ? data.length : 0, '列数:', columns.length);
+    
+    if (!data || data.length === 0) {
+        console.warn('没有数据可预览');
+        return;
+    }
+    
+    if (!columns || columns.length === 0) {
+        console.warn('没有列信息');
+        return;
+    }
+    
     // 生成表头
     let headerHtml = '<tr>';
     columns.forEach(function(col) {
@@ -431,6 +456,7 @@ function displayDataPreview(data, columns) {
     $('#previewTable thead').html(headerHtml);
     $('#previewTable tbody').html(bodyHtml);
     $('#dataPreview').removeClass('d-none');
+    console.log('数据预览显示完成');
 }
 
 function testDbConnection() {
@@ -544,10 +570,27 @@ function proceedToExtraction() {
         return;
     }
     
-    showLoading('正在跳转到参数提取页面...');
-    setTimeout(function() {
-        window.location.href = '/extract_parameters';
-    }, 1000);
+    // 检查是否已选择分类模板
+    $.get('/api/status', function(response) {
+        console.log('工作流状态:', response.workflow_status);
+        if (response.workflow_status && response.workflow_status.selected_template) {
+            // 已选择模板，跳转到参数提取
+            showLoading('正在跳转到参数提取页面...');
+            setTimeout(function() {
+                window.location.href = '/extract_parameters';
+            }, 500);
+        } else {
+            // 未选择模板，先跳转到模板选择
+            showLoading('请先选择分类模板...');
+            setTimeout(function() {
+                window.location.href = '/template-selection';
+            }, 500);
+        }
+    }).fail(function() {
+        // 出错时跳转到批量处理工作流
+        alert('检查状态失败，将跳转到批量处理页面');
+        window.location.href = '/material-workflow';
+    });
 }
 </script>
 {% endblock %}

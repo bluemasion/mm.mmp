@@ -33,6 +33,33 @@
                 </h5>
             </div>
             <div class="card-body">
+                <!-- 快速处理入口 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="bg-gradient-primary text-white rounded p-4 mb-4">
+                            <div class="row align-items-center">
+                                <div class="col-lg-8">
+                                    <h5 class="fw-bold mb-2" style="color: #fff;">🚀 快速开始</h5>
+                                    <p class="mb-3 opacity-90">选择您的使用场景，快速开始物料分类处理</p>
+                                    <div class="d-flex gap-3">
+                                        <a href="/single-fuzzy-matching" class="btn btn-light btn-lg">
+                                            <i class="fas fa-search text-danger"></i> 单物料处理
+                                            <small class="d-block text-muted">即时分类推荐</small>
+                                        </a>
+                                        <a href="/material-workflow" class="btn btn-outline-light btn-lg">
+                                            <i class="fas fa-tasks"></i> 批量处理
+                                            <small class="d-block opacity-75">大量数据处理</small>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 text-center">
+                                    <i class="fas fa-magic fa-4x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="row">
                     <!-- 步骤1：数据导入 -->
                     <div class="col-md-6 mb-4">
@@ -252,6 +279,20 @@
             </div>
             <div class="card-body">
                 <div class="list-group list-group-flush">
+                    <a href="/single-fuzzy-matching" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-search text-danger"></i>
+                            <span class="ms-2">单物料匹配</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                    <a href="{{ url_for('matching_page') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-brain text-info"></i>
+                            <span class="ms-2">数据匹配计算</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
                     <a href="{{ url_for('upload_page') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <div>
                             <i class="fas fa-upload text-primary"></i>
