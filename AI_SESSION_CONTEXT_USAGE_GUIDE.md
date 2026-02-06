@@ -148,6 +148,89 @@ cd "/path/to/project" && python project_context_generator.py
 - **验证点**：在关键步骤设置验证检查点
 - **文档化**：记录重要的开发决策和变更
 
+---
+
+## 📊 项目信息快照 (2026年2月6日更新)
+
+### 项目核心信息
+- **项目名称**: MMP (Material Master data Processing)
+- **项目规模**: 132个Python文件 | 6.69 MB代码
+- **GitHub仓库**: https://github.com/bluemasion/mm.mmp
+- **当前分支**: main (v12232)
+- **技术栈**: Flask, SQLAlchemy, scikit-learn, PostgreSQL, Redis, Docker
+
+### 📋 完整功能模块（10大模块）
+1. ✅ **物料主数据管理** - 导入、搜索、维护、字段映射
+2. ✅ **智能分类系统** - TF-IDF + 多算法融合、76个类别、85%准确率
+3. ✅ **模糊匹配引擎** - 精确/模糊匹配、相似度推荐、可调阈值(30-80%)
+4. ✅ **数据去重系统** - 重复检测、冲突解决、批量合并、用户反馈
+5. ✅ **质量评估系统** - 单/批量评估、质量建议、与分类集成
+6. ⚠️ **增量同步系统** - 增量检测、外部源对接、冲突解决（真实对接待测）
+7. ✅ **工作流引擎** - 完整流程(导入→分类→匹配→决策→导出)、会话管理、历史回溯
+8. ⚠️ **统一API v2** - 40+个API接口、部分端点需注册
+9. ✅ **数据处理管道** - 中文分词、数据清洗、参数提取、多行业适配
+10. ✅ **数据库与会话** - SQLite/PostgreSQL双模式、ORM模型、Redis缓存
+
+### 🔌 主要API分类
+- **物料管理**: `/api/master_data/*` (6个端点)
+- **智能分类**: `/api/smart_classification`, `/api/batch_recommend`, `/api/v2/classify` (5个端点)
+- **模糊匹配**: `/api/single_fuzzy_matching`, `/api/batch_material_matching` (5个端点)
+- **数据去重**: `/api/deduplication/*` (5个端点)
+- **质量评估**: `/api/quality/*` (4个端点)
+- **增量同步**: `/api/sync/*` (3个端点)
+- **工作流**: `/api/material-workflow/*`, `/api/upload_material_data`, `/api/save_workflow_results` (6个端点)
+- **统一接口**: `/api/v2/health`, `/api/v2/classify`, `/api/v2/process-material`, `/api/v2/dashboard` (6个端点)
+
+### 📈 功能完成度评估
+| 模块 | 完成度 | 状态 |
+|------|--------|------|
+| 物料主数据管理 | 95% | ✅ |
+| 智能分类系统 | 95% | ✅ |
+| 模糊匹配引擎 | 100% | ✅ |
+| 数据去重系统 | 90% | ✅ |
+| 质量评估系统 | 85% | ⚠️ |
+| 增量同步系统 | 80% | ⚠️ |
+| 工作流引擎 | 95% | ✅ |
+| 统一API v2 | 85% | ⚠️ |
+| 数据处理管道 | 90% | ✅ |
+| Docker部署 | 100% | ✅ |
+
+### ⚠️ 已知问题与待优化项
+1. **高优先级**: `/api/v2/*` 路由部分未注册到主Flask应用
+2. **高优先级**: `deduplication_bp`, `quality_bp`, `sync_bp` Blueprint需在web_app.py完整注册
+3. **中优先级**: 外部数据源真实对接未测试
+4. **中优先级**: 需建立性能基准测试
+5. **中优先级**: 部分文档与代码不同步
+
+### 🛠️ 核心配置文件
+- `enhanced_classifier_config.json` - 分类规则(7082行)
+- `config.py` - 应用配置
+- `database_config.ini` - 数据库连接
+- `docker-compose.yml` - 容器编排
+- `.github/copilot-instructions.md` - AI开发指南
+- `.github/workflows/ci.yml` - GitHub Actions CI/CD
+
+### 📚 核心文档列表
+- `PROJECT_FUNCTION_INVENTORY.md` - 完整功能清单(2026.2.6新建)
+- `PROJECT_REQUIREMENTS_TRACKING.md` - 需求与版本追踪(2026.2.6新建)
+- `GITHUB_SETUP.md` - GitHub对接指南
+- `.github/copilot-instructions.md` - AI开发指南
+- 其他需求文档: REQUIREMENTS_DOCUMENT.md, PROJECT_STATUS_SUMMARY.md等
+
+### 🚀 部署就绪状态
+- ✅ 本地开发：`python run_app.py` (端口5001)
+- ✅ 简化API：`python api.py` (端口5000)
+- ✅ Docker完整栈：`docker-compose up --build`
+- ✅ GitHub Actions CI/CD配置完成
+- ✅ SSH密钥配置已完成
+
+### 📝 版本历程
+- **v1.0**: 基础功能 (词表分类、CSV处理)
+- **v2.0**: 智能增强 (TF-IDF、模糊匹配、工作流)
+- **v2.1**: 模糊匹配增强 (逐条查询、双重推荐)
+- **v3.0**: 增强系统集成 (去重、质量、同步、统一API)
+- **v3.1**: 系统完善(进行中) (API注册、性能优化、测试覆盖)
+
 ## 🚀 高级功能
 
 ### 1. 自定义上下文生成
